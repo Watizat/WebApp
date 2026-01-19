@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { axiosInstance } from '../../../utils/axios';
-import { useAppDispatch } from '../../../hooks/redux';
+import { fetchMe } from '../../../api/user';
 import { DirectusUser } from '../../../@types/user';
 
 interface Props {
@@ -17,14 +16,13 @@ interface Props {
 }
 
 export default function Button({ item }: Props) {
-  const dispatch = useAppDispatch();
   const [me, setMe] = useState<DirectusUser | null>(null);
 
   useEffect(() => {
     async function getUserInfos() {
       try {
-        const { data } = await axiosInstance.get('/users/me');
-        setMe(data.data);
+        const meData = await fetchMe();
+        setMe(meData);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error(
@@ -35,7 +33,7 @@ export default function Button({ item }: Props) {
       }
     }
     getUserInfos();
-  }, [dispatch]);
+  }, []);
 
   return (
     <div>

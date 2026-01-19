@@ -1,26 +1,44 @@
 import { Link } from 'react-router-dom';
 import { ChangeEvent, FormEvent } from 'react';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import {
-  askPassword,
-  changeLoginCredentialsField,
-} from '../../../store/reducers/user';
+import { useAppState } from '../../../hooks/appState';
+import { askPassword } from '../../../api/user';
 import Login from './Login';
 
 export default function ForgottenPassword() {
-  const dispatch = useAppDispatch();
-  const email = useAppSelector((state) => state.user.loginCredentials.email);
-  const message = useAppSelector((state) => state.user.message);
+  const { userState, setUserState } = useAppState();
+  const { loginCredentials, message } = userState;
+  const { email } = loginCredentials;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    dispatch(
-      changeLoginCredentialsField({ field: 'email', value: event.target.value })
-    );
+    setUserState((prev) => ({
+      ...prev,
+      loginCredentials: {
+        ...prev.loginCredentials,
+        email: event.target.value,
+      },
+    }));
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    dispatch(askPassword(email));
+    setUserState((prev) => ({ ...prev, isLoading: true }));
+    askPassword(email)
+      .then(() => {
+        setUserState((prev) => ({
+          ...prev,
+          isLoading: false,
+          message: 'Le mail a bien été envoyé',
+          error: null,
+        }));
+      })
+      .catch(() => {
+        setUserState((prev) => ({
+          ...prev,
+          isLoading: false,
+          message: null,
+          error: 'Une erreur est survenue lors de la demande de mot de passe',
+        }));
+      });
   };
 
   return (

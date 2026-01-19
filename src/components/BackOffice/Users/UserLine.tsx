@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { DirectusUser } from '../../../@types/user';
 import SlideEditUser from '../SlideOvers/Users/EditUser';
 // import ModalUsers from '../../Modals/ModalEditUsers';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 
 interface Props {
   user: DirectusUser;
@@ -54,7 +54,8 @@ function renderRoles(data: DirectusUser) {
 
 export default function UserLine({ user }: Props) {
   const [isOpenSlide, setIsOpenSlide] = useState(false);
-  const zones = useAppSelector((state) => state.admin.zones);
+  const { adminState } = useAppState();
+  const { zones } = adminState;
   const uniqueQueryParam = Math.random();
   const { className, text } = renderRoles(user);
 

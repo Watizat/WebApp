@@ -2,17 +2,15 @@ import { useEffect } from 'react';
 import jwt_decode from 'jwt-decode';
 import UserLine from './UserLine';
 import { UserSession } from '../../../@types/user';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import { fetchUsers } from '../../../store/reducers/admin';
-import { axiosInstance } from '../../../utils/axios';
+import { useAppState } from '../../../hooks/appState';
+import { fetchUsers } from '../../../api/admin';
+import { fetchMe } from '../../../api/user';
 import { getUserDataFromLocalStorage } from '../../../utils/user';
-import { changeAdmin } from '../../../store/reducers/user';
 
 export default function Users() {
-  const dispatch = useAppDispatch();
-  const users = useAppSelector((state) => state.admin.users);
-  const zones = useAppSelector((state) => state.admin.zones);
-  const city = useAppSelector((state) => state.user.city);
+  const { adminState, userState, setAdminState, setUserState } = useAppState();
+  const { users, zones } = adminState;
+  const { city } = userState;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,8 +20,8 @@ export default function Users() {
         ? zones.find((zone) => zone.name === cityLocal)
         : zones.find((zone) => zone.name === city);
       const localUser = getUserDataFromLocalStorage();
-      const { data } = await axiosInstance.get('/users/me');
-      const { zone } = data.data;
+      const meData = await fetchMe();
+      const { zone } = meData;
 
       if (!localUser?.token) {
         return;
@@ -33,14 +31,17 @@ export default function Users() {
           localUser.token.access_token
         ) as UserSession;
         if (decodedUser.role === '53de6ec2-6d70-48c8-8532-61f96133f139') {
-          dispatch(changeAdmin(true));
+          setUserState((prev) => ({ ...prev, isAdmin: true }));
           if (cityId !== undefined) {
-            await dispatch(fetchUsers(cityId.id.toString()));
+            const usersList = await fetchUsers(cityId.id.toString());
+            setAdminState((prev) => ({ ...prev, users: usersList }));
           } else {
-            await dispatch(fetchUsers(null));
+            const usersList = await fetchUsers(null);
+            setAdminState((prev) => ({ ...prev, users: usersList }));
           }
         } else {
-          await dispatch(fetchUsers(zone.toString()));
+          const usersList = await fetchUsers(zone.toString());
+          setAdminState((prev) => ({ ...prev, users: usersList }));
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -52,7 +53,7 @@ export default function Users() {
     };
 
     fetchData();
-  }, [dispatch, zones, city]);
+  }, [setAdminState, setUserState, zones, city]);
 
   return (
     <main className="flex flex-col flex-1 min-w-full align-middle bg-white h-max min-h-max sm:px-6 lg:px-8 grow">

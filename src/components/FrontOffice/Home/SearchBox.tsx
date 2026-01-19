@@ -1,13 +1,14 @@
 import { ChangeEvent, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Icon from '../../../ui/icon/icon';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 import FrontColor from '../../Container/FrontColor';
 
 export default function SearchBox() {
   const navigate = useNavigate();
-  const categories = useAppSelector((state) => state.organism.categories);
-  const cities = useAppSelector((state) => state.admin.zones);
+  const { adminState, organismState } = useAppState();
+  const { categories } = organismState;
+  const { zones: cities } = adminState;
 
   const [selectedValues, setSelectedValues] = useState({
     city: '',

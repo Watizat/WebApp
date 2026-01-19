@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 // import { PhoneIcon } from '@heroicons/react/24/solid';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import { fetchOrganism } from '../../../store/reducers/organisms';
+import { useAppState } from '../../../hooks/appState';
+import { fetchOrganism } from '../../../api/organisms';
 
 import SubHeader from './SubHeader';
 import Transports from './Transports';
@@ -17,17 +17,23 @@ import Actions from './Actions';
 
 export default function Organisme() {
   const { slug } = useParams();
-  const dispatch = useAppDispatch();
-  const organism = useAppSelector((state) => state.organism.organism);
+  const { organismState, setOrganismState } = useAppState();
+  const { organism } = organismState;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      await dispatch(fetchOrganism(slug as string));
+      setOrganismState((prev) => ({ ...prev, isLoading: true }));
+      const organismData = await fetchOrganism(slug as string);
+      setOrganismState((prev) => ({
+        ...prev,
+        organism: organismData,
+        isLoading: false,
+      }));
       setLoading(false);
     };
     fetchData();
-  }, [dispatch, slug]);
+  }, [setOrganismState, slug]);
 
   /*   const searchParams = new URLSearchParams(location.search);
   const city = searchParams.get('city') || '';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAppSelector } from '../../../../hooks/redux';
+import { useAppState } from '../../../../hooks/appState';
 import {
   formatPhoneNumber,
   addURLPrefix,
@@ -19,7 +19,8 @@ export default function General() {
     '',
     '',
   ]);
-  const organism = useAppSelector((state) => state.admin.organism);
+  const { adminState } = useAppState();
+  const { organism } = adminState;
 
   if (organism === null) {
     return <span>Une erreur s&apos;est produite.</span>;

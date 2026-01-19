@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Inputs } from '../../../../@types/formInputs';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import { setAdminOrganism } from '../../../../store/reducers/admin';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchAdminOrganism } from '../../../../api/admin';
+import { editOrganismData } from '../../../../api/crud';
 import Slide from '../components/Slide';
 import Header from '../components/Header';
 import Textarea from '../../components/Textarea';
@@ -10,7 +11,6 @@ import Checkbox from '../../components/ToggleEdit';
 import BtnCloseValid from '../components/BtnCloseValid';
 import SchedulesTable from '../../components/SchedulesTable';
 import { Organism } from '../../../../@types/organism';
-import { editOrganismData } from '../../../../store/reducers/crud';
 
 interface Props {
   isOpenSlide: boolean;
@@ -30,7 +30,8 @@ export default function EditOrgaInfos({
     reset, // Ajoutez la fonction reset pour réinitialiser le formulaire
   } = useForm<Inputs>();
 
-  const dispatch = useAppDispatch();
+  const { adminState, organismState, crudState, setAdminState, setCrudState } =
+    useAppState();
 
   // Réinitialiser le formulaire à l'ouverture de la slide
   useEffect(() => {
@@ -39,20 +40,18 @@ export default function EditOrgaInfos({
     }
   }, [isOpenSlide, reset]);
 
-  const days = useAppSelector((state) => state.organism.days);
-
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
-  const isSaving = useAppSelector((state) => state.crud.isSaving);
+  const { days } = organismState;
+  const organismId = adminState.organism?.id as number;
+  const { isSaving } = crudState;
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
     const organismTranslationId = organism.translations[0].id;
-    await dispatch(
-      editOrganismData({ formData, organismId, organismTranslationId })
-    );
+    setCrudState({ isSaving: true });
+    await editOrganismData({ formData, organismId, organismTranslationId });
     setIsOpenSlide(false);
-    await dispatch(setAdminOrganism(organismId));
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
+    setCrudState({ isSaving: false });
   };
 
   const handleCloseSlide = () => {

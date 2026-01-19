@@ -1,35 +1,63 @@
 import { ChangeEvent, FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { KeyOfloginCredentials } from '../../../@types/user';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import {
-  changeLoginCredentialsField,
-  login,
-} from '../../../store/reducers/user';
+import { useAppState } from '../../../hooks/appState';
+import { login as loginRequest } from '../../../api/user';
 import { getUserDataFromLocalStorage } from '../../../utils/user';
 
 import Login from './Login';
 
 export default function SignIn() {
-  const dispatch = useAppDispatch();
-  const email = useAppSelector((state) => state.user.loginCredentials.email);
-  const password = useAppSelector(
-    (state) => state.user.loginCredentials.password
-  );
+  const { userState, setUserState } = useAppState();
+  const { loginCredentials, error } = userState;
+  const { email, password } = loginCredentials;
   const user = getUserDataFromLocalStorage();
-  const error = useAppSelector((state) => state.user.error);
 
   const handleChangeField =
     (field: KeyOfloginCredentials) =>
     (event: ChangeEvent<HTMLInputElement>) => {
-      dispatch(
-        changeLoginCredentialsField({ field, value: event.target.value })
-      );
+      setUserState((prev) => ({
+        ...prev,
+        loginCredentials: {
+          ...prev.loginCredentials,
+          [field]: event.target.value,
+        },
+      }));
     };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await dispatch(login({ email, password }));
+    setUserState((prev) => ({ ...prev, isLoading: true }));
+    try {
+      const { token, session } = await loginRequest({ email, password });
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          token,
+          isActive: true,
+          lastActionDate: Date.now(),
+        })
+      );
+      setUserState((prev) => ({
+        ...prev,
+        session,
+        token,
+        error: null,
+        isLogged: true,
+        isActive: true,
+        lastActionDate: Date.now(),
+        loginCredentials: { email: '', password: '' },
+        isLoading: false,
+        isAdmin: false,
+      }));
+    } catch (err) {
+      setUserState((prev) => ({
+        ...prev,
+        error: 'Email ou mot de passe incorrect(s)',
+        isLoading: false,
+        isLogged: false,
+      }));
+    }
   };
 
   if (user) {

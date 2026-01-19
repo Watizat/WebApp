@@ -4,31 +4,45 @@ import { useMediaQuery } from 'react-responsive';
 import Footer from '../FrontOffice/Footer/Footer';
 import Header from '../FrontOffice/Header/Default';
 
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { fetchZones } from '../../store/reducers/admin';
-import { fetchCategories, fetchDays } from '../../store/reducers/organisms';
+import { useAppState } from '../../hooks/appState';
+import { fetchZones } from '../../api/admin';
+import { fetchCategories, fetchDays } from '../../api/organisms';
 
 export default function FrontApp() {
   const isTablet = useMediaQuery({ query: '(min-width: 769px)' });
-  const dispatch = useAppDispatch();
+  const { organismState, setAdminState, setOrganismState } = useAppState();
   const [loading, setLoading] = useState(true);
-  const langue = useAppSelector((state) => state.organism.langue);
+  const { langue } = organismState;
 
   useEffect(() => {
     const fetchData = async () => {
-      await dispatch(fetchCategories());
+      setOrganismState((prev) => ({ ...prev, isLoading: true }));
+      const categories = await fetchCategories();
+      setOrganismState((prev) => ({
+        ...prev,
+        categories,
+        isLoading: false,
+      }));
       setLoading(false);
     };
     fetchData();
-  }, [dispatch]);
+  }, [setOrganismState]);
 
   useEffect(() => {
-    dispatch(fetchZones());
-  }, [dispatch]);
+    const loadZones = async () => {
+      const zones = await fetchZones();
+      setAdminState((prev) => ({ ...prev, zones }));
+    };
+    loadZones();
+  }, [setAdminState]);
 
   useEffect(() => {
-    dispatch(fetchDays(1));
-  }, [dispatch, langue]);
+    const loadDays = async () => {
+      const days = await fetchDays(1);
+      setOrganismState((prev) => ({ ...prev, days }));
+    };
+    loadDays();
+  }, [setOrganismState, langue]);
 
   return (
     <main className="relative flex flex-col min-h-full overflow-y-hidden md:overflow-auto">

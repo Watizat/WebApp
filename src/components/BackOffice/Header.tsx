@@ -6,10 +6,11 @@ import {
   ChevronDownIcon,
   ArchiveBoxIcon,
 } from '@heroicons/react/24/outline';
-import { axiosInstance } from '../../utils/axios';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { changeCity, logout } from '../../store/reducers/user';
-import { fetchZones } from '../../store/reducers/admin';
+import { fetchMe } from '../../api/user';
+import { useAppState } from '../../hooks/appState';
+import { fetchZones } from '../../api/admin';
+import { logout as logoutRequest } from '../../api/user';
+import { removeUserDataFromLocalStorage } from '../../utils/user';
 import { DirectusUser } from '../../@types/user';
 import { useAppContext } from '../../context/BackOfficeContext';
 
@@ -22,30 +23,38 @@ interface Props {
 
 export default function Header({ setSidebarOpen }: Props) {
   const [select, setSelect] = useState(localStorage.getItem('city') || '');
-  const isAdmin = useAppSelector((state) => state.user.isAdmin);
-  const dispatch = useAppDispatch();
-  const zones = useAppSelector((state) => state.admin.zones);
+  const { adminState, userState, setAdminState, setUserState } = useAppState();
+  const { isAdmin } = userState;
+  const { zones } = adminState;
   const [me, setMe] = useState<DirectusUser | null>(null);
   const { pathname } = useLocation();
 
   const handleChangeCity = (event: ChangeEvent<HTMLSelectElement>) => {
     localStorage.setItem('city', event.target.value);
     setSelect(event.target.value);
-    dispatch(changeCity(event.target.value));
+    setUserState((prev) => ({ ...prev, city: event.target.value }));
   };
 
   useEffect(() => {
     async function getUserInfos() {
-      const { data } = await axiosInstance.get('/users/me');
-      setMe(data.data);
+      const meData = await fetchMe();
+      setMe(meData);
     }
     getUserInfos();
-    dispatch(fetchZones());
-  }, [dispatch]);
+    const loadZones = async () => {
+      const zonesList = await fetchZones();
+      setAdminState((prev) => ({ ...prev, zones: zonesList }));
+    };
+    loadZones();
+  }, [setAdminState]);
 
   useEffect(() => {
-    dispatch(fetchZones());
-  }, [dispatch]);
+    const loadZones = async () => {
+      const zonesList = await fetchZones();
+      setAdminState((prev) => ({ ...prev, zones: zonesList }));
+    };
+    loadZones();
+  }, [setAdminState]);
 
   // Récupération du contexte
   const appContext = useAppContext();
@@ -56,7 +65,16 @@ export default function Header({ setSidebarOpen }: Props) {
   const { isDisplayArchivedOrga, setIsDisplayArchivedOrga } = appContext;
 
   const handleLogout = () => {
-    dispatch(logout());
+    logoutRequest().finally(() => {
+      removeUserDataFromLocalStorage();
+      setUserState((prev) => ({
+        ...prev,
+        isLogged: false,
+        isActive: false,
+        lastActionDate: null,
+        token: null,
+      }));
+    });
   };
 
   const actions = [

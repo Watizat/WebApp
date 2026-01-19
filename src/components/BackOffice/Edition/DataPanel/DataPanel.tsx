@@ -1,11 +1,12 @@
-import { useAppSelector } from '../../../../hooks/redux';
+import { useAppState } from '../../../../hooks/appState';
 import General from './General';
 import Contacts from './Contacts';
 import Informations from './Informations';
 import Services from './Services';
 
 export default function DataPanel() {
-  const organism = useAppSelector((state) => state.admin.organism);
+  const { adminState } = useAppState();
+  const { organism } = adminState;
 
   if (organism === null) {
     return (

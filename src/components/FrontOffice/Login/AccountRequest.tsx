@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
+import { registerUser as registerUserRequest } from '../../../api/user';
 import { Inputs } from '../../../@types/formInputs';
-import { registerUser } from '../../../store/reducers/user';
 import { validateEmail } from '../../../utils/form/form';
 import Login from './Login';
 
@@ -14,26 +14,31 @@ export default function AccountRequest() {
     formState: { errors },
   } = useForm<Inputs>();
 
-  const dispatch = useAppDispatch();
-  const zones = useAppSelector((state) => state.admin.zones);
-  // const message = useAppSelector((state) => state.user.message);
+  const { adminState, setUserState } = useAppState();
+  const { zones } = adminState;
   const [confirmationMessage, setConfirmationMessage] = useState<
     string | null
   >();
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
-    const response = await dispatch(registerUser(formData));
-    switch (response.meta.requestStatus) {
-      case 'fulfilled':
-        return setConfirmationMessage(
-          `Votre compte a bien été créé, il est en attente de validation.`
-        );
-      case 'rejected':
-        return setConfirmationMessage(
-          `Une erreur s'est produite lors de la création de votre compte.`
-        );
-      default:
-        return 'Error';
+    try {
+      await registerUserRequest(formData);
+      setUserState((prev) => ({
+        ...prev,
+        message:
+          'Votre inscription à bien été prise en compte et va être vérifiée',
+      }));
+      return setConfirmationMessage(
+        `Votre compte a bien été créé, il est en attente de validation.`
+      );
+    } catch (error) {
+      setUserState((prev) => ({
+        ...prev,
+        message: 'Erreur lors de la création du compte',
+      }));
+      return setConfirmationMessage(
+        `Une erreur s'est produite lors de la création de votre compte.`
+      );
     }
   };
 

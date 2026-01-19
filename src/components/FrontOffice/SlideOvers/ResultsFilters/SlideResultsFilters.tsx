@@ -1,11 +1,8 @@
 import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import {
-  fetchCategories,
-  filterCategories,
-} from '../../../../store/reducers/organisms';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchCategories } from '../../../../api/organisms';
 import Slide from '../../../BackOffice/SlideOvers/components/Slide';
 import Header from '../../../BackOffice/SlideOvers/components/Header';
 import Category from './Category';
@@ -29,28 +26,29 @@ export default function SlideResultsFilters({
   setIsAnimalsAccepted,
   setSearch,
 }: Props) {
-  const dispatch = useAppDispatch();
+  const { organismState, setOrganismState } = useAppState();
   const [searchParams] = useSearchParams();
   const categoryParams = searchParams.get('category') as string;
 
-  const categories = useAppSelector((state) => state.organism.categories);
-  const categoryFilter = useAppSelector(
-    (state) => state.organism.categoryFilter
-  );
-  const organisms = useAppSelector((state) => state.organism.filteredOrganisms);
+  const { categories, categoryFilter, filteredOrganisms: organisms } =
+    organismState;
 
   const [searchInputValue, setSearchInputValue] = useState<string>('');
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
 
   const handleCategoryChange = (tag: string) => {
     if (categoryFilter.includes(tag)) {
-      dispatch(
-        filterCategories(
-          categoryFilter.filter((selectedCategory) => selectedCategory !== tag)
-        )
-      );
+      setOrganismState((prev) => ({
+        ...prev,
+        categoryFilter: categoryFilter.filter(
+          (selectedCategory) => selectedCategory !== tag
+        ),
+      }));
     } else {
-      dispatch(filterCategories([...categoryFilter, tag]));
+      setOrganismState((prev) => ({
+        ...prev,
+        categoryFilter: [...categoryFilter, tag],
+      }));
     }
   };
 
@@ -84,12 +82,24 @@ export default function SlideResultsFilters({
   }, [organisms]);
 
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
+    const loadCategories = async () => {
+      setOrganismState((prev) => ({ ...prev, isLoading: true }));
+      const categoriesData = await fetchCategories();
+      setOrganismState((prev) => ({
+        ...prev,
+        categories: categoriesData,
+        isLoading: false,
+      }));
+    };
+    loadCategories();
+  }, [setOrganismState]);
 
   useEffect(() => {
-    dispatch(filterCategories([categoryParams]));
-  }, [dispatch, categoryParams]);
+    setOrganismState((prev) => ({
+      ...prev,
+      categoryFilter: [categoryParams],
+    }));
+  }, [setOrganismState, categoryParams]);
 
   const handleCloseSlide = () => {
     setIsOpenSlide(false);

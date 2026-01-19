@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Popover, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 import { Service } from '../../../@types/organism';
 import Icon from '../../../ui/icon/icon';
 import Schedules from '../../components/Schedules';
@@ -12,9 +12,8 @@ interface Organism {
 }
 
 export default function Services() {
-  const organism = useAppSelector(
-    (state) => state.organism.organism as Organism
-  );
+  const { organismState } = useAppState();
+  const organism = organismState.organism as Organism;
 
   return (
     <section className="flex flex-col">

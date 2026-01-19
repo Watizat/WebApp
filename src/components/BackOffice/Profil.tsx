@@ -1,28 +1,33 @@
 import { useEffect, useState } from 'react';
-import { fetchRoles, fetchZones } from '../../store/reducers/admin';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { useAppState } from '../../hooks/appState';
+import { fetchRoles, fetchZones } from '../../api/admin';
 import { DirectusUser } from '../../@types/user';
-import { axiosInstance } from '../../utils/axios';
+import { fetchMe } from '../../api/user';
 import BackColor from '../Container/BackColor';
 import SlideEditProfil from './SlideOvers/Profil/EditProfil';
 
 export default function Profil() {
-  const dispatch = useAppDispatch();
-  const zones = useAppSelector((state) => state.admin.zones);
-  const roles = useAppSelector((state) => state.admin.roles);
+  const { adminState, setAdminState } = useAppState();
+  const { zones, roles } = adminState;
   const [me, setMe] = useState<DirectusUser | null>(null);
 
   const [isOpenSlide, setIsOpenSlide] = useState(false);
 
   useEffect(() => {
     async function getUserInfos() {
-      const { data } = await axiosInstance.get('/users/me');
-      setMe(data.data);
+      const meData = await fetchMe();
+      setMe(meData);
     }
     getUserInfos();
-    dispatch(fetchZones());
-    dispatch(fetchRoles());
-  }, [dispatch]);
+    const loadAdminData = async () => {
+      const [zones, roles] = await Promise.all([
+        fetchZones(),
+        fetchRoles(),
+      ]);
+      setAdminState((prev) => ({ ...prev, zones, roles }));
+    };
+    loadAdminData();
+  }, [setAdminState]);
 
   if (!me) {
     return <div />;

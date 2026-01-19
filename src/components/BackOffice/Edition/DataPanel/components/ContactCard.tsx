@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../../../../hooks/redux';
-import { setAdminOrganism } from '../../../../../store/reducers/admin';
-import { axiosInstance } from '../../../../../utils/axios';
+import { useAppState } from '../../../../../hooks/appState';
+import { fetchAdminOrganism } from '../../../../../api/admin';
+import { deleteContact } from '../../../../../api/crud';
 import { Contact } from '../../../../../@types/organism';
 import { formatPhoneNumber } from '../../../../../utils/format';
 import VerticalMenu from '../../../../components/VerticalMenu';
@@ -24,6 +24,7 @@ export default function ContactCard({
 }: Props) {
   const [isOpenSlide, setIsOpenSlide] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
+  const { adminState, setAdminState } = useAppState();
 
   const menuChoices = [
     {
@@ -40,14 +41,12 @@ export default function ContactCard({
     },
   ];
 
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
-  const dispatch = useAppDispatch();
+  const organismId = adminState.organism?.id as number;
 
   async function handleDeleteConfirm(contactId: number) {
-    await axiosInstance.delete(`/items/contact/${contactId}`);
-    await dispatch(setAdminOrganism(organismId));
+    await deleteContact(contactId);
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
     setIsOpenSlide(false);
     setIsOpenModal(false);
   }

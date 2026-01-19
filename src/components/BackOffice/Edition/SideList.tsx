@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Organism } from '../../../@types/organism';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 import {
   fetchAdminOrganisms,
-  setAdminOrganism,
-} from '../../../store/reducers/admin';
+  fetchAdminOrganism,
+} from '../../../api/admin';
 import { useAppContext } from '../../../context/BackOfficeContext';
 
 export default function SideList() {
-  const organisms = useAppSelector((state) => state.admin.organisms);
-  const isLoading = useAppSelector((state) => state.admin.isLoading);
-  const dispatch = useAppDispatch();
+  const { adminState, userState, setAdminState } = useAppState();
+  const { organisms, isLoading } = adminState;
   const [isActive, setIsActive] = useState<number | null>(null);
-  const city = useAppSelector((state) => state.user.city as string);
+  const city = userState.city as string;
 
   function handleClick(organism: Organism) {
-    dispatch(setAdminOrganism(organism.id));
+    fetchAdminOrganism(organism.id).then((organismData) => {
+      setAdminState((prev) => ({ ...prev, organism: organismData }));
+    });
     setIsActive(organism.id);
   }
 
@@ -23,16 +24,16 @@ export default function SideList() {
   const appContext = useAppContext();
   useEffect(() => {
     const fetchOrganisms = async () => {
-      await dispatch(
-        fetchAdminOrganisms({
-          city,
-          isDisplayArchivedOrga: appContext?.isDisplayArchivedOrga,
-        })
-      );
+      setAdminState((prev) => ({ ...prev, isLoading: true }));
+      const organisms = await fetchAdminOrganisms({
+        city,
+        isDisplayArchivedOrga: appContext?.isDisplayArchivedOrga,
+      });
+      setAdminState((prev) => ({ ...prev, organisms, isLoading: false }));
     };
 
     fetchOrganisms();
-  }, [dispatch, city, appContext?.isDisplayArchivedOrga]);
+  }, [setAdminState, city, appContext?.isDisplayArchivedOrga]);
 
   const filteredOrganisms = appContext?.isDisplayArchivedOrga
     ? organisms

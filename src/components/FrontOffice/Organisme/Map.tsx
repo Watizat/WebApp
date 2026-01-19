@@ -2,15 +2,14 @@ import L from 'leaflet';
 import { useState, useEffect } from 'react';
 import { MapContainer, Marker, TileLayer } from 'react-leaflet';
 import { Organism } from '../../../@types/organism';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 import '../Resultats/Map/Map.scss';
 
 export default function Map() {
   const [position, setPosition] = useState({ lat: 43.6, lng: 1.433333 });
 
-  const organism = useAppSelector(
-    (state) => state.organism.organism as Organism
-  );
+  const { organismState } = useAppState();
+  const organism = organismState.organism as Organism;
 
   useEffect(() => {
     if (organism.latitude && organism.longitude) {

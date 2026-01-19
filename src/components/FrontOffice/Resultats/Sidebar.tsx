@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useMediaQuery } from 'react-responsive';
 
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import { setFilteredOrganisms } from '../../../store/reducers/organisms';
+import { useAppState } from '../../../hooks/appState';
 import SkeletonCard from '../../Skeleton/Resultats/Card';
 import Card from './Card';
 
@@ -22,14 +21,9 @@ export default function Sidebar({
 }: SidebarProps) {
   const isTouch = useMediaQuery({ query: '(max-width: 1023px)' });
 
-  const dispatch = useAppDispatch();
-  const organisms = useAppSelector((state) => state.organism.organisms);
-  const filteredOrganisms = useAppSelector(
-    (state) => state.organism.filteredOrganisms
-  );
-  const categoryFilter = useAppSelector(
-    (state) => state.organism.categoryFilter
-  );
+  const { organismState, setOrganismState } = useAppState();
+  const { organisms, filteredOrganisms, categoryFilter, scroll } =
+    organismState;
 
   const [loader, setLoader] = useState<boolean>(true);
 
@@ -70,16 +64,21 @@ export default function Sidebar({
       );
     });
     setLoader(false); // Passer true pour tester les skeletons
-    dispatch(setFilteredOrganisms(setFilter));
-  }, [organisms, categoryFilter, isPmr, isAnimalsAccepted, search, dispatch]);
-
-  const organismToScroll = useAppSelector((state) => state.organism.scroll);
+    setOrganismState((prev) => ({ ...prev, filteredOrganisms: setFilter }));
+  }, [
+    organisms,
+    categoryFilter,
+    isPmr,
+    isAnimalsAccepted,
+    search,
+    setOrganismState,
+  ]);
 
   const resultsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (organismToScroll) {
-      const element = document.getElementById(organismToScroll.toString());
+    if (scroll) {
+      const element = document.getElementById(scroll.toString());
       if (element && resultsContainerRef.current) {
         const containerTop =
           resultsContainerRef.current.getBoundingClientRect().top;
@@ -92,7 +91,7 @@ export default function Sidebar({
         });
       }
     }
-  }, [organismToScroll]);
+  }, [scroll]);
 
   return (
     <section

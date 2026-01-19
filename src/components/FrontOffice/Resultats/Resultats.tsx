@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useSearchParams } from 'react-router-dom';
-import { useAppDispatch } from '../../../hooks/redux';
-import {
-  fetchCityPosition,
-  fetchOrganisms,
-} from '../../../store/reducers/organisms';
+import { useAppState } from '../../../hooks/appState';
+import { fetchCityPosition, fetchOrganisms } from '../../../api/organisms';
 
 import Sidebar from './Sidebar';
 import Header from '../Header/Results';
@@ -14,7 +11,7 @@ import MobileToggle from './MobileToggle';
 
 export default function Resultats() {
   const isTouch = useMediaQuery({ query: '(max-width: 1023px)' });
-  const dispatch = useAppDispatch();
+  const { setOrganismState } = useAppState();
   const [searchParams] = useSearchParams();
   const city = searchParams.get('city');
 
@@ -31,15 +28,20 @@ export default function Resultats() {
 
   useEffect(() => {
     async function fetchCity() {
-      const { payload } = await dispatch(
-        fetchCityPosition(localStorage.getItem('city'))
-      );
-      const { latitude, longitude } = payload;
+      const cityData = await fetchCityPosition(localStorage.getItem('city'));
+      const { latitude, longitude } = cityData;
       setCityPosition({ lat: latitude, lng: longitude });
-      await dispatch(fetchOrganisms(city as string));
+      setOrganismState((prev) => ({ ...prev, isLoading: true }));
+      const organisms = await fetchOrganisms(city as string);
+      setOrganismState((prev) => ({
+        ...prev,
+        organisms,
+        filteredOrganisms: organisms,
+        isLoading: false,
+      }));
     }
     fetchCity();
-  }, [dispatch, city]);
+  }, [setOrganismState, city]);
 
   return (
     <main>

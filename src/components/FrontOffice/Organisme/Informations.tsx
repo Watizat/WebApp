@@ -1,10 +1,11 @@
 import React from 'react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 import Schedules from '../../components/Schedules';
 
 export default function Informations() {
-  const organism = useAppSelector((state) => state.organism.organism);
+  const { organismState } = useAppState();
+  const { organism } = organismState;
 
   if (organism === null) {
     return <span>Erreur</span>;

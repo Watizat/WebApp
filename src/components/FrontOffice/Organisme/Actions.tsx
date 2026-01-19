@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { MapIcon, PhoneIcon } from '@heroicons/react/24/outline';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 
 export default function Actions() {
-  const organism = useAppSelector((state) => state.organism.organism);
+  const { organismState } = useAppState();
+  const { organism } = organismState;
   if (organism === null) {
     return <span>Erreur</span>;
   }

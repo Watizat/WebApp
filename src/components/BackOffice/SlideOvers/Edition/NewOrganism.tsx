@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Inputs } from '../../../../@types/formInputs';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import {
-  fetchAdminOrganisms,
-  setAdminOrganism,
-} from '../../../../store/reducers/admin';
-import { addOrganism } from '../../../../store/reducers/crud';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchAdminOrganisms, fetchAdminOrganism } from '../../../../api/admin';
+import { addOrganism } from '../../../../api/crud';
 import {
   validateEmail,
   validatePhoneNumber,
@@ -17,7 +14,7 @@ import Header from '../components/Header';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
 import BtnCloseValid from '../components/BtnCloseValid';
-import { axiosInstance } from '../../../../utils/axios';
+import { fetchMe } from '../../../../api/user';
 import Checkbox from '../../components/ToggleEdit';
 import Textarea from '../../components/Textarea';
 import SchedulesTable from '../../components/SchedulesTable';
@@ -28,14 +25,19 @@ interface Props {
 }
 
 export default function NewOrganism({ isOpenSlide, setIsOpenSlide }: Props) {
-  const dispatch = useAppDispatch();
+  const {
+    adminState,
+    crudState,
+    organismState,
+    setAdminState,
+    setCrudState,
+    userState,
+  } = useAppState();
   const [me, setMe] = useState<DirectusUser | null>(null);
-  const isSaving = useAppSelector((state) => state.crud.isSaving);
-  const isAdmin = useAppSelector((state) => state.user.isAdmin);
-
-  const zones = useAppSelector((state) => state.admin.zones);
-  const days = useAppSelector((state) => state.organism.days);
-  const city = useAppSelector((state) => state.user.city as string);
+  const { isSaving } = crudState;
+  const { isAdmin, city } = userState;
+  const { zones } = adminState;
+  const { days } = organismState;
   const {
     register, // Récupère les fonctions register
     handleSubmit, // Récupère la fonction handleSubmit
@@ -45,21 +47,27 @@ export default function NewOrganism({ isOpenSlide, setIsOpenSlide }: Props) {
 
   useEffect(() => {
     async function getUserInfos() {
-      const { data } = await axiosInstance.get('/users/me');
-      setMe(data.data);
+      const meData = await fetchMe();
+      setMe(meData);
     }
     getUserInfos();
-  }, [dispatch]);
+  }, []);
 
   if (!me) {
     return <div />;
   }
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
-    const { payload: id } = await dispatch(addOrganism(formData));
-    await dispatch(setAdminOrganism(id));
+    setCrudState({ isSaving: true });
+    const id = await addOrganism(formData);
+    if (id) {
+      const organismData = await fetchAdminOrganism(id);
+      setAdminState((prev) => ({ ...prev, organism: organismData }));
+    }
     setIsOpenSlide(false);
-    await dispatch(fetchAdminOrganisms({ city }));
+    const organisms = await fetchAdminOrganisms({ city });
+    setAdminState((prev) => ({ ...prev, organisms, isLoading: false }));
+    setCrudState({ isSaving: false });
   };
 
   const handleCloseSlide = () => {

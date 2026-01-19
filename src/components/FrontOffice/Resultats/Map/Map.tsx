@@ -2,11 +2,7 @@ import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { Link } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import {
-  scrollCard,
-  setUserPosition,
-} from '../../../../store/reducers/organisms';
+import { useAppState } from '../../../../hooks/appState';
 import Icon from '../../../../ui/icon/icon';
 
 import './Map.scss';
@@ -23,9 +19,8 @@ interface MapProps {
 export default function Map({ cityPosition }: MapProps) {
   const [position] = useState({ lat: 43.6, lng: 1.433333 });
   const [navigatorGps, setNavigatorGps] = useState(false);
-  const organisms = useAppSelector((state) => state.organism.filteredOrganisms);
-  const userPosition = useAppSelector((state) => state.organism.userPosition);
-  const dispatch = useAppDispatch();
+  const { organismState, setOrganismState } = useAppState();
+  const { filteredOrganisms: organisms, userPosition } = organismState;
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -34,7 +29,7 @@ export default function Map({ cityPosition }: MapProps) {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         };
-        dispatch(setUserPosition(newUserPos));
+        setOrganismState((prev) => ({ ...prev, userPosition: newUserPos }));
         setNavigatorGps(true);
       },
       (err) => {
@@ -42,7 +37,7 @@ export default function Map({ cityPosition }: MapProps) {
         console.log(err);
       }
     );
-  }, [dispatch]);
+  }, [setOrganismState]);
   const me = new L.DivIcon({
     className: 'custom-me',
     html: `<div></div>`,
@@ -87,7 +82,10 @@ export default function Map({ cityPosition }: MapProps) {
               icon={customIcon}
               eventHandlers={{
                 click: () => {
-                  dispatch(scrollCard(organism.id));
+                  setOrganismState((prev) => ({
+                    ...prev,
+                    scroll: organism.id,
+                  }));
                 },
               }}
             >
