@@ -1,18 +1,16 @@
 import { Outlet } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { useAppState } from '../../hooks/appState';
 import { getUserDataFromLocalStorage } from '../../utils/user';
-import { logout } from '../../store/reducers/user';
+import { logout as logoutRequest } from '../../api/user';
+import { removeUserDataFromLocalStorage } from '../../utils/user';
 import ModalInactivityDetector from '../Modals/InactivityDisconnection';
 
 export default function InactivityDetector() {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [answerCount, setAnswerCount] = useState(0);
-  const isActive = useAppSelector((state) => state.user.isActive);
-  const timeout = useAppSelector((state) => state.user.timeout);
-  const lastActionDate = useAppSelector((state) => state.user.lastActionDate);
-
-  const dispatch = useAppDispatch();
+  const { userState, setUserState } = useAppState();
+  const { isActive, timeout, lastActionDate } = userState;
 
   useEffect(() => {
     const user = getUserDataFromLocalStorage();
@@ -24,7 +22,16 @@ export default function InactivityDetector() {
     );
 
     if (isActive && currentTime.getTime() - lastestUpdate > timeout) {
-      dispatch(logout());
+      logoutRequest().finally(() => {
+        removeUserDataFromLocalStorage();
+        setUserState((prev) => ({
+          ...prev,
+          isLogged: false,
+          isActive: false,
+          lastActionDate: null,
+          token: null,
+        }));
+      });
     }
     let timeoutID: number | undefined;
     const showModal = () => {
@@ -38,7 +45,16 @@ export default function InactivityDetector() {
     const trackAction = () => {
       const userLS = getUserDataFromLocalStorage();
       if (isActive && !userLS) {
-        dispatch(logout());
+        logoutRequest().finally(() => {
+          removeUserDataFromLocalStorage();
+          setUserState((prev) => ({
+            ...prev,
+            isLogged: false,
+            isActive: false,
+            lastActionDate: null,
+            token: null,
+          }));
+        });
       }
       if (userLS) {
         const actionDate = new Date();
@@ -61,7 +77,7 @@ export default function InactivityDetector() {
       window.removeEventListener('mousedown', trackAction);
       window.removeEventListener('keydown', trackAction);
     };
-  }, [isActive, answerCount, lastActionDate, timeout, dispatch]);
+  }, [isActive, answerCount, lastActionDate, timeout, setUserState]);
 
   return (
     <>

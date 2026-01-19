@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Inputs } from '../../../../@types/formInputs';
 import { DirectusUser, UserSession } from '../../../../@types/user';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import { fetchUsers } from '../../../../store/reducers/admin';
-import { editUser } from '../../../../store/reducers/user';
-import { axiosInstance } from '../../../../utils/axios';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchUsers } from '../../../../api/admin';
+import { editUser, updateUserStatus, fetchMe } from '../../../../api/user';
 import { getUserDataFromLocalStorage } from '../../../../utils/user';
 import { validateEmail } from '../../../../utils/form/form';
 import Slide from '../components/Slide';
@@ -36,43 +35,44 @@ export default function SlideEditUser({
 
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-  const dispatch = useAppDispatch();
-  const zones = useAppSelector((state) => state.admin.zones);
-  const roles = useAppSelector((state) => state.admin.roles);
-  const isAdmin = useAppSelector((state) => state.user.isAdmin);
-  const city = useAppSelector((state) => state.user.city);
+  const { adminState, userState, setAdminState } = useAppState();
+  const { zones, roles } = adminState;
+  const { isAdmin, city } = userState;
 
   const handleCloseSlide = () => {
     setIsOpenSlide(false); // Ferme la slide
   };
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
-    await dispatch(editUser(formData));
+    await editUser(formData);
     const cityLocal = localStorage.getItem('city');
 
     const cityId = cityLocal
       ? zones.find((zone) => zone.name === cityLocal)
       : zones.find((zone) => zone.name === city);
     const localUser = getUserDataFromLocalStorage();
-    const { data } = await axiosInstance.get('/users/me');
-    const { zone } = data.data;
+    const me = await fetchMe();
+    const { zone } = me;
 
     if (!localUser?.token) {
       return;
     }
     try {
-      const decodedUser = jwt_decode(
-        localUser.token.access_token
-      ) as UserSession;
-      if (decodedUser.role === '53de6ec2-6d70-48c8-8532-61f96133f139') {
-        if (cityId !== undefined) {
-          await dispatch(fetchUsers(cityId.id.toString()));
+        const decodedUser = jwt_decode(
+          localUser.token.access_token
+        ) as UserSession;
+        if (decodedUser.role === '53de6ec2-6d70-48c8-8532-61f96133f139') {
+          if (cityId !== undefined) {
+            const usersList = await fetchUsers(cityId.id.toString());
+            setAdminState((prev) => ({ ...prev, users: usersList }));
+          } else {
+            const usersList = await fetchUsers(null);
+            setAdminState((prev) => ({ ...prev, users: usersList }));
+          }
         } else {
-          await dispatch(fetchUsers(null));
+          const usersList = await fetchUsers(zone.toString());
+          setAdminState((prev) => ({ ...prev, users: usersList }));
         }
-      } else {
-        await dispatch(fetchUsers(zone.toString()));
-      }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error while decoding JWT or dispatching actions:', error);
@@ -82,17 +82,10 @@ export default function SlideEditUser({
 
   async function reActiveUser(userId: string) {
     try {
-      const response = await axiosInstance.patch(`/users/${userId}`, {
-        status: 'active',
-      });
-      if (response.status === 200) {
-        // L'utilisateur a été réactivé avec succès
-        handleCloseSlide();
-        // Rechargez les données de l'utilisateur réactivé en appelant fetchUsers
-        await dispatch(fetchUsers(user.zone.toString()));
-      } else {
-        // Gérer les erreurs ici
-      }
+      await updateUserStatus(userId, 'active');
+      handleCloseSlide();
+      const usersList = await fetchUsers(user.zone.toString());
+      setAdminState((prev) => ({ ...prev, users: usersList }));
     } catch (error) {
       // Gérer les erreurs ici
     }
@@ -100,15 +93,8 @@ export default function SlideEditUser({
 
   async function archiveUser(userId: string) {
     try {
-      const response = await axiosInstance.patch(`/users/${userId}`, {
-        status: 'archived',
-      });
-      if (response.status === 200) {
-        // L'utilisateur a été archivé avec succès
-        handleCloseSlide();
-      } else {
-        // Gérer les erreurs ici
-      }
+      await updateUserStatus(userId, 'archived');
+      handleCloseSlide();
     } catch (error) {
       // Gérer les erreurs ici
     }

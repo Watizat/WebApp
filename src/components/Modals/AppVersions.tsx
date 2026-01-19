@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import ModalBase from './components/ModalBase';
-import styles from '../../styles/markdown.module.scss';
+import styles from '../../styles/markdown.module.css';
 
 interface Release {
   tag_name: string;

@@ -1,12 +1,9 @@
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { Inputs } from '../../../../@types/formInputs';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import { setAdminOrganism } from '../../../../store/reducers/admin';
-import {
-  addOrganismContact,
-  addServiceContact,
-} from '../../../../store/reducers/crud';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchAdminOrganism } from '../../../../api/admin';
+import { addOrganismContact, addServiceContact } from '../../../../api/crud';
 import {
   validateEmail,
   validatePhoneNumber,
@@ -40,21 +37,22 @@ export default function NewContact({
   // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const dispatch = useAppDispatch();
-  const isSaving = useAppSelector((state) => state.crud.isSaving);
-
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
+  const { crudState, adminState, setAdminState, setCrudState } = useAppState();
+  const { isSaving } = crudState;
+  const organismId = adminState.organism?.id as number;
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
     try {
       let response;
 
       if (service) {
-        response = await dispatch(addServiceContact(formData));
+        setCrudState({ isSaving: true });
+        await addServiceContact(formData);
+        response = { meta: { requestStatus: 'fulfilled' } };
       } else {
-        response = await dispatch(addOrganismContact(formData));
+        setCrudState({ isSaving: true });
+        await addOrganismContact(formData);
+        response = { meta: { requestStatus: 'fulfilled' } };
         if (response.meta.requestStatus !== 'fulfilled') {
           setErrorMessage(
             'Une erreur est survenue lors de la création du contact.'
@@ -63,7 +61,9 @@ export default function NewContact({
       }
 
       setIsOpenSlide(false);
-      await dispatch(setAdminOrganism(organismId));
+      const organismData = await fetchAdminOrganism(organismId);
+      setAdminState((prev) => ({ ...prev, organism: organismData }));
+      setCrudState({ isSaving: false });
     } catch (error) {
       // Gérer les erreurs ici
       // eslint-disable-next-line no-console

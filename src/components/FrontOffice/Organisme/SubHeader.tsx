@@ -1,13 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { PhoneIcon } from '@heroicons/react/24/solid';
 import { MapIcon } from '@heroicons/react/24/outline';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 import Icon from '../../../ui/icon/icon';
 
 export default function SubHeader() {
   const navigate = useNavigate();
 
-  const organism = useAppSelector((state) => state.organism.organism);
+  const { organismState } = useAppState();
+  const { organism } = organismState;
   const lastSearch = localStorage.getItem('last_search');
   const targetPath = lastSearch !== null ? lastSearch : '/';
   const services = organism?.services;

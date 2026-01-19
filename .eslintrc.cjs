@@ -4,14 +4,6 @@ module.exports = {
     browser: true,
     es2021: true,
   },
-  extends: [
-    'airbnb',
-    'airbnb-typescript',
-    'airbnb/hooks',
-    'plugin:react/recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:prettier/recommended', // must be the last one
-  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {
@@ -21,52 +13,45 @@ module.exports = {
     sourceType: 'module',
     project: './tsconfig.json',
   },
-  overrides: [
-    {
-      files: ['src/**/store/**/*.ts'],
-      rules: { 'no-param-reassign': ['error', { props: false }] },
-    },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react-hooks/recommended',
+    'prettier',
   ],
-  plugins: ['react', '@typescript-eslint', 'prettier', 'unused-imports'],
+  plugins: ['@typescript-eslint', 'react-refresh'],
   rules: {
-    'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",
-    'unused-imports/no-unused-imports': 'error',
-    'unused-imports/no-unused-vars': [
+    'react-refresh/only-export-components': [
       'warn',
       {
-        vars: 'all',
-        varsIgnorePattern: '^_',
-        args: 'after-used',
+        allowConstantExport: true,
+      },
+    ],
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
         argsIgnorePattern: '^_',
       },
     ],
-    'react/react-in-jsx-scope': 0,
-    'react/jsx-filename-extension': [
-      2,
-      { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
-    ],
-    'import/extensions': [
-      'error',
-      'ignorePackages',
-      {
-        js: 'never',
-        jsx: 'never',
-        ts: 'never',
-        tsx: 'never',
-      },
-    ],
-    'react/jsx-props-no-spreading': 0,
-    'jsx-a11y/label-has-associated-control': [2, { assert: 'either' }],
-    'linebreak-style': 0,
-    'no-restricted-imports': 0,
-    '@typescript-eslint/no-restricted-imports': [
-      'warn',
-      {
-        name: 'react-redux',
-        importNames: ['useSelector', 'useDispatch'],
-        message:
-          'Use typed hooks `useAppDispatch` and `useAppSelector` instead.',
-      },
-    ],
   },
+  overrides: [
+    {
+      files: [
+        'src/components/ui/badge.tsx',
+        'src/components/ui/button.tsx',
+        'src/components/ui/toaster.tsx',
+      ],
+      rules: {
+        'react-refresh/only-export-components': 'off',
+      },
+    },
+  ],
+  ignorePatterns: [
+    '**/dist',
+    '**/.eslintrc.cjs',
+    '**/.eslintrc.json',
+    '**/node_modules',
+    '**/eslint.config.*',
+    '**/storybook-static',
+  ],
 };

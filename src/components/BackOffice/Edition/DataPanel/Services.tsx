@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { useAppSelector } from '../../../../hooks/redux';
+import { useAppState } from '../../../../hooks/appState';
 import Card from './components/Card';
 import ServiceCard from './components/ServiceCard';
 import NewService from '../../SlideOvers/Edition/NewService';
 
 export default function Services() {
   const [isOpenSlide, setIsOpenSlide] = useState(false);
-  const organism = useAppSelector((state) => state.admin.organism);
+  const { adminState } = useAppState();
+  const { organism } = adminState;
   const services = organism?.services;
 
   const menuChoices = [

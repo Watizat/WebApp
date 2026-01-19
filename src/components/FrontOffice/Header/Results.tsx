@@ -9,7 +9,7 @@ import logo from '../../../assets/logo-color.svg';
 interface Props {
   setIsOpenSlide: React.Dispatch<React.SetStateAction<boolean>>;
 }
-// TODO Barre de recherche masquée (pour fonctionner nécessite de passer fonctions de la sidebar dans le store Redux) - A faire plus tard
+// TODO Barre de recherche masquée (nécessite de passer les fonctions de la sidebar via le contexte) - A faire plus tard
 export default function Header({ setIsOpenSlide }: Props) {
   return (
     <section>

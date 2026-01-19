@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { axiosInstance } from '../../../utils/axios';
-import { useAppDispatch } from '../../../hooks/redux';
+import { fetchMe } from '../../../api/user';
 import { DirectusUser } from '../../../@types/user';
 
 interface Props {
@@ -16,17 +15,15 @@ interface Props {
   };
 }
 
-// const { data } = await axiosInstance.get('/users/me');
 export default function LinkSquare({ item }: Props) {
   const { pathname } = useLocation();
-  const dispatch = useAppDispatch();
   const [me, setMe] = useState<DirectusUser | null>(null);
 
   useEffect(() => {
     async function getUserInfos() {
       try {
-        const { data } = await axiosInstance.get('/users/me');
-        setMe(data.data);
+        const meData = await fetchMe();
+        setMe(meData);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error(
@@ -37,7 +34,7 @@ export default function LinkSquare({ item }: Props) {
       }
     }
     getUserInfos();
-  }, [dispatch]);
+  }, []);
 
   return (
     <li key={item.name}>

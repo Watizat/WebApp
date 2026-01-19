@@ -12,8 +12,9 @@ import {
   CommandLineIcon,
 } from '@heroicons/react/24/outline';
 
-import { useAppDispatch } from '../../../hooks/redux';
-import { logout } from '../../../store/reducers/user';
+import { useAppState } from '../../../hooks/appState';
+import { logout as logoutRequest } from '../../../api/user';
+import { removeUserDataFromLocalStorage } from '../../../utils/user';
 
 import Tablet from './SideTablet';
 import Desktop from './SideDesktop';
@@ -27,7 +28,7 @@ interface Props {
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
   const [isOpenModalVersions, setIsOpenModalVersions] = useState(false);
-  const dispatch = useAppDispatch();
+  const { setUserState } = useAppState();
 
   const memoizedNavigation = useMemo(() => {
     return [
@@ -100,7 +101,16 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
 
   const memoizedActions = useMemo(() => {
     const handleLogout = () => {
-      dispatch(logout());
+      logoutRequest().finally(() => {
+        removeUserDataFromLocalStorage();
+        setUserState((prev) => ({
+          ...prev,
+          isLogged: false,
+          isActive: false,
+          lastActionDate: null,
+          token: null,
+        }));
+      });
     };
 
     return [
@@ -126,7 +136,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
         onclick: handleLogout,
       },
     ];
-  }, [dispatch, setSidebarOpen]);
+  }, [setSidebarOpen, setUserState]);
 
   return (
     <>

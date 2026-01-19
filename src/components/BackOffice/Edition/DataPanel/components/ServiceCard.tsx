@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Service } from '../../../../../@types/organism';
-import { useAppDispatch, useAppSelector } from '../../../../../hooks/redux';
-import { axiosInstance } from '../../../../../utils/axios';
-import { setAdminOrganism } from '../../../../../store/reducers/admin';
+import { useAppState } from '../../../../../hooks/appState';
+import { fetchAdminOrganism } from '../../../../../api/admin';
+import { deleteService } from '../../../../../api/crud';
 import Icon from '../../../../../ui/icon/icon';
 import Schedules from '../../../../components/Schedules';
 import ContactCard from './ContactCard';
@@ -16,7 +16,7 @@ interface Props {
   service: Service;
 }
 export default function ServiceCard({ service }: Props) {
-  const dispatch = useAppDispatch();
+  const { adminState, setAdminState } = useAppState();
   const [isOpenSlideEditService, setIsOpenSlideEditService] = useState(false);
   const [isOpenSlideNewContact, setIsOpenSlideNewContact] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -41,13 +41,12 @@ export default function ServiceCard({ service }: Props) {
     },
   ];
 
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
+  const organismId = adminState.organism?.id as number;
 
   async function handleDeleteConfirm(serviceId: number) {
-    await axiosInstance.delete(`/items/service/${serviceId}`);
-    await dispatch(setAdminOrganism(organismId));
+    await deleteService(serviceId);
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
     setIsOpenSlideEditService(false);
     setIsOpenModal(false);
   }

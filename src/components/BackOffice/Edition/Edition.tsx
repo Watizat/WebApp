@@ -1,18 +1,23 @@
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import { fetchAdminOrganisms } from '../../../store/reducers/admin';
+import { useAppState } from '../../../hooks/appState';
+import { fetchAdminOrganisms } from '../../../api/admin';
 import NewOrganism from '../SlideOvers/Edition/NewOrganism';
 import Sidelist from './SideList';
 import DataPanel from './DataPanel/DataPanel';
 import { useAppContext } from '../../../context/BackOfficeContext';
 
 export default function Edition() {
-  const dispatch = useAppDispatch();
-  const city = useAppSelector((state) => state.user.city as string);
+  const { setAdminState, userState } = useAppState();
+  const city = userState.city as string;
 
   useEffect(() => {
-    dispatch(fetchAdminOrganisms({ city }));
-  }, [dispatch, city]);
+    const loadOrganisms = async () => {
+      setAdminState((prev) => ({ ...prev, isLoading: true }));
+      const organisms = await fetchAdminOrganisms({ city });
+      setAdminState((prev) => ({ ...prev, organisms, isLoading: false }));
+    };
+    loadOrganisms();
+  }, [setAdminState, city]);
 
   // Récupération du contexte
   const appContext = useAppContext();

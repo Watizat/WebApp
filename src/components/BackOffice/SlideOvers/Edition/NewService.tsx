@@ -1,8 +1,8 @@
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Inputs } from '../../../../@types/formInputs';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import { setAdminOrganism } from '../../../../store/reducers/admin';
-import { addService } from '../../../../store/reducers/crud';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchAdminOrganism } from '../../../../api/admin';
+import { addService } from '../../../../api/crud';
 
 import Slide from '../components/Slide';
 import Header from '../components/Header';
@@ -25,20 +25,20 @@ export default function NewOrganism({ isOpenSlide, setIsOpenSlide }: Props) {
     reset, // Ajoutez la fonction reset pour réinitialiser le formulaire
   } = useForm<Inputs>();
 
-  const dispatch = useAppDispatch();
-  const categoriesList = useAppSelector((state) => state.organism.categories);
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
-
-  const isSaving = useAppSelector((state) => state.crud.isSaving);
-  const days = useAppSelector((state) => state.organism.days);
+  const { adminState, organismState, crudState, setAdminState, setCrudState } =
+    useAppState();
+  const { categories: categoriesList, days } = organismState;
+  const organismId = adminState.organism?.id as number;
+  const { isSaving } = crudState;
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
-    await dispatch(addService(formData));
+    setCrudState({ isSaving: true });
+    await addService(formData);
     setIsOpenSlide(false);
-    await dispatch(setAdminOrganism(organismId));
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
     reset();
+    setCrudState({ isSaving: false });
   };
 
   const handleCloseSlide = () => {

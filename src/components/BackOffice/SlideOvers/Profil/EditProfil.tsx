@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { fetchRoles, fetchZones } from '../../../../store/reducers/admin';
-import { useAppDispatch } from '../../../../hooks/redux';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchRoles, fetchZones } from '../../../../api/admin';
+import {
+  editUser,
+  fetchMe,
+  logout as logoutRequest,
+  updateUserStatus,
+} from '../../../../api/user';
 import { DirectusUser } from '../../../../@types/user';
-import { axiosInstance } from '../../../../utils/axios';
 import { Inputs } from '../../../../@types/formInputs';
 import { validateEmail } from '../../../../utils/form/form';
-import { editUser, logout } from '../../../../store/reducers/user';
+import { removeUserDataFromLocalStorage } from '../../../../utils/user';
 import DeleteConfirmation from '../../../Modals/DeleteConfirmation';
 import Slide from '../components/Slide';
 import Header from '../components/Header';
@@ -32,15 +37,14 @@ export default function EditSelfProfil({
     reset, // Ajoutez la fonction reset pour réinitialiser le formulaire
   } = useForm<Inputs>();
 
-  const dispatch = useAppDispatch();
+  const { setAdminState, setUserState } = useAppState();
   const [me, setMe] = useState<DirectusUser | null>(null);
   const navigate = useNavigate();
   const [isOpenModal, setIsOpenModal] = useState(false);
 
   const getUserInfos = async () => {
     try {
-      const { data } = await axiosInstance.get('/users/me');
-      return data.data;
+      return await fetchMe();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(
@@ -55,9 +59,9 @@ export default function EditSelfProfil({
     if (formData.password === '') {
       const formDataCopy = { ...formData };
       delete formDataCopy.password;
-      await dispatch(editUser(formDataCopy));
+      await editUser(formDataCopy);
     } else {
-      await dispatch(editUser(formData));
+      await editUser(formData);
     }
     const updatedUserData = await getUserInfos();
     if (updatedUserData) {
@@ -73,34 +77,41 @@ export default function EditSelfProfil({
 
   async function suspendUser(userId: string) {
     try {
-      const response = await axiosInstance.patch(`/users/${userId}`, {
-        status: 'suspended',
+      await updateUserStatus(userId, 'suspended');
+      setIsOpenModal(false);
+      logoutRequest().finally(() => {
+        removeUserDataFromLocalStorage();
+        setUserState((prev) => ({
+          ...prev,
+          isLogged: false,
+          isActive: false,
+          lastActionDate: null,
+          token: null,
+        }));
       });
-      if (response.status === 200) {
-        // L'utilisateur a été suspendu/désactivé avec succès
-        setIsOpenModal(false);
-        dispatch(logout());
-        navigate('/');
-      } else {
-        // Gérer les erreurs ici
-      }
+      navigate('/');
     } catch (error) {
       // Gérer les erreurs ici
     }
   }
 
+  async function fetchInitialData() {
+    // Appel de getUserInfos uniquement si la diapositive est ouverte
+    getUserInfos().then((userData) => {
+      if (userData) {
+        setMe(userData);
+      }
+    });
+    const [zones, roles] = await Promise.all([fetchZones(), fetchRoles()]);
+    setAdminState((prev) => ({ ...prev, zones, roles }));
+  }
+
   useEffect(() => {
     if (isOpenSlide) {
-      // Appel de getUserInfos uniquement si la diapositive est ouverte
-      getUserInfos().then((userData) => {
-        if (userData) {
-          setMe(userData);
-        }
-      });
-      dispatch(fetchZones());
-      dispatch(fetchRoles());
+      fetchInitialData();
     }
-  }, [dispatch, isOpenSlide]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpenSlide]);
 
   if (!me) {
     return <div />;

@@ -1,15 +1,11 @@
 import { ChangeEvent, useEffect, useState, Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Transition } from '@headlessui/react';
-import {
-  Bars3Icon,
-  ChevronDownIcon,
-  ArchiveBoxIcon,
-} from '@heroicons/react/24/outline';
-import { axiosInstance } from '../../utils/axios';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { changeCity, logout } from '../../store/reducers/user';
-import { fetchZones } from '../../store/reducers/admin';
+import { Listbox, Menu, Transition } from '@headlessui/react';
+import { Bars3Icon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { fetchMe, logout as logoutRequest } from '../../api/user';
+import { useAppState } from '../../hooks/appState';
+import { fetchZones } from '../../api/admin';
+import { removeUserDataFromLocalStorage } from '../../utils/user';
 import { DirectusUser } from '../../@types/user';
 import { useAppContext } from '../../context/BackOfficeContext';
 
@@ -22,30 +18,38 @@ interface Props {
 
 export default function Header({ setSidebarOpen }: Props) {
   const [select, setSelect] = useState(localStorage.getItem('city') || '');
-  const isAdmin = useAppSelector((state) => state.user.isAdmin);
-  const dispatch = useAppDispatch();
-  const zones = useAppSelector((state) => state.admin.zones);
+  const { adminState, userState, setAdminState, setUserState } = useAppState();
+  const { isAdmin } = userState;
+  const { zones } = adminState;
   const [me, setMe] = useState<DirectusUser | null>(null);
   const { pathname } = useLocation();
 
   const handleChangeCity = (event: ChangeEvent<HTMLSelectElement>) => {
     localStorage.setItem('city', event.target.value);
     setSelect(event.target.value);
-    dispatch(changeCity(event.target.value));
+    setUserState((prev) => ({ ...prev, city: event.target.value }));
   };
 
   useEffect(() => {
     async function getUserInfos() {
-      const { data } = await axiosInstance.get('/users/me');
-      setMe(data.data);
+      const meData = await fetchMe();
+      setMe(meData);
     }
     getUserInfos();
-    dispatch(fetchZones());
-  }, [dispatch]);
+    const loadZones = async () => {
+      const zonesList = await fetchZones();
+      setAdminState((prev) => ({ ...prev, zones: zonesList }));
+    };
+    loadZones();
+  }, [setAdminState]);
 
   useEffect(() => {
-    dispatch(fetchZones());
-  }, [dispatch]);
+    const loadZones = async () => {
+      const zonesList = await fetchZones();
+      setAdminState((prev) => ({ ...prev, zones: zonesList }));
+    };
+    loadZones();
+  }, [setAdminState]);
 
   // Récupération du contexte
   const appContext = useAppContext();
@@ -56,7 +60,16 @@ export default function Header({ setSidebarOpen }: Props) {
   const { isDisplayArchivedOrga, setIsDisplayArchivedOrga } = appContext;
 
   const handleLogout = () => {
-    dispatch(logout());
+    logoutRequest().finally(() => {
+      removeUserDataFromLocalStorage();
+      setUserState((prev) => ({
+        ...prev,
+        isLogged: false,
+        isActive: false,
+        lastActionDate: null,
+        token: null,
+      }));
+    });
   };
 
   const actions = [
@@ -116,22 +129,69 @@ export default function Header({ setSidebarOpen }: Props) {
         </div>
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           {/* City select */}
-          <div>
-            <select
+          <div className="w-56">
+            <Listbox
               value={select}
-              onChange={handleChangeCity}
-              className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-200/80 sm:text-sm sm:leading-6 bg-white  hover:bg-white disabled:cursor-not-allowed"
+              onChange={(value) => {
+                handleChangeCity({
+                  target: { value },
+                } as ChangeEvent<HTMLSelectElement>);
+              }}
               disabled={!isAdmin}
             >
-              <option value="" disabled>
-                Selectionner une ville
-              </option>
-              {zones.map((zone) => (
-                <option key={zone.id} value={zone.name}>
-                  {zone.name}
-                </option>
-              ))}
-            </select>
+              <div className="relative">
+                <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 ring-1 ring-inset ring-gray-200/80 sm:text-sm sm:leading-6 disabled:cursor-not-allowed">
+                  <span className="block truncate">
+                    {select || 'Selectionner une ville'}
+                  </span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <ChevronDownIcon
+                      className="h-4 w-4 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </Listbox.Button>
+                <Transition
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none">
+                    <Listbox.Option
+                      value=""
+                      disabled
+                      className="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-400"
+                    >
+                      Selectionner une ville
+                    </Listbox.Option>
+                    {zones.map((zone) => (
+                      <Listbox.Option
+                        key={zone.id}
+                        value={zone.name}
+                        className={({ active }) =>
+                          classNames(
+                            active ? 'bg-sky-50 text-sky-900' : 'text-gray-900',
+                            'relative cursor-default select-none py-2 pl-3 pr-9'
+                          )
+                        }
+                      >
+                        {({ selected }) => (
+                          <span
+                            className={classNames(
+                              selected ? 'font-semibold' : 'font-normal',
+                              'block truncate'
+                            )}
+                          >
+                            {zone.name}
+                          </span>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </Listbox>
           </div>
           {/* Separator */}
           <div
@@ -169,7 +229,7 @@ export default function Header({ setSidebarOpen }: Props) {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="absolute right-0 -z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+              <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
                 {actions.map((action) => (
                   <Menu.Item key={action.name}>
                     {({ active }) => (

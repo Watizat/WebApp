@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
-import { useAppDispatch } from '../../../hooks/redux';
-import { logout } from '../../../store/reducers/user';
+import { useAppState } from '../../../hooks/appState';
+import { logout as logoutRequest } from '../../../api/user';
+import { removeUserDataFromLocalStorage } from '../../../utils/user';
 import Login from './Login';
 
 export default function NewUser() {
-  const dispatch = useAppDispatch();
+  const { setUserState } = useAppState();
   return (
     <Login>
       <div className="flex flex-col flex-1">
@@ -16,7 +17,18 @@ export default function NewUser() {
         </div>
         <Link
           to="/"
-          onClick={() => dispatch(logout())}
+          onClick={() =>
+            logoutRequest().finally(() => {
+              removeUserDataFromLocalStorage();
+              setUserState((prev) => ({
+                ...prev,
+                isLogged: false,
+                isActive: false,
+                lastActionDate: null,
+                token: null,
+              }));
+            })
+          }
           className="mx-auto mt-6"
         >
           <button
