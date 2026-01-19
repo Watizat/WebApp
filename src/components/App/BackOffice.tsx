@@ -1,6 +1,5 @@
 /* eslint-disable react/jsx-no-useless-fragment */
 import { useEffect, useState } from 'react';
-import { useMediaQuery } from 'react-responsive';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAppState } from '../../hooks/appState';
@@ -14,7 +13,6 @@ import Header from '../BackOffice/Header';
 import BackOfficeContext from '../../context/BackOfficeContext';
 
 export default function App() {
-  const isTablet = useMediaQuery({ query: '(min-width: 769px)' });
   const { organismState, setAdminState, setOrganismState, setUserState } =
     useAppState();
   const user = getUserDataFromLocalStorage();
@@ -97,33 +95,32 @@ export default function App() {
 
   return (
     <BackOfficeContext>
-      {isTablet ? (
-        <>
-          {!isLoading && (
-            <>
-              <Sidebar
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-              />
-              <div
-                className={` flex flex-col flex-1  lg:pl-20 ${
-                  pathname !== '/admin/dashboard' && '2xl:pl-72 '
-                } ${
-                  pathname === '/admin/dashboard' ||
-                  pathname === '/admin/profil'
-                    ? 'h-full min-h-full'
-                    : 'h-max min-h-max'
-                }`}
-              >
-                <Header setSidebarOpen={setSidebarOpen} />
-                <Outlet />
-              </div>
-            </>
-          )}
-        </>
-      ) : (
+      <div className="md:hidden">
         <NoMobile />
-      )}
+      </div>
+      <div className="hidden md:block">
+        {!isLoading && (
+          <>
+            <Sidebar
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+            />
+            <div
+              className={` flex flex-col flex-1  lg:pl-20 ${
+                pathname !== '/admin/dashboard' && '2xl:pl-72 '
+              } ${
+                pathname === '/admin/dashboard' ||
+                pathname === '/admin/profil'
+                  ? 'h-full min-h-full'
+                  : 'h-max min-h-max'
+              }`}
+            >
+              <Header setSidebarOpen={setSidebarOpen} />
+              <Outlet />
+            </div>
+          </>
+        )}
+      </div>
     </BackOfficeContext>
   );
 }

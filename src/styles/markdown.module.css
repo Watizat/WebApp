@@ -1,0 +1,26 @@
+.markdown h2 {
+  @apply text-3xl;
+  @apply text-red-500;
+}
+
+.markdown h3 {
+  @apply text-lg;
+  @apply font-medium;
+  @apply mt-2;
+  @apply text-slate-900;
+}
+
+.markdown h4 {
+  @apply text-base;
+  @apply font-medium;
+  @apply text-slate-900;
+  @apply mt-2;
+  @apply mb-0.5;
+  @apply ml-3;
+}
+
+.markdown li {
+  @apply list-disc;
+  @apply ml-3;
+  @apply text-gray-700;
+}

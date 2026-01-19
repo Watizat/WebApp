@@ -1,17 +1,14 @@
-import dayjs from 'dayjs';
-import 'dayjs/locale/fr'; // Importez le fichier de localisation français
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import moment from 'moment';
+import 'moment/locale/fr';
 import { useState } from 'react';
 import { DirectusUser } from '../../../@types/user';
 import SlideEditUser from '../SlideOvers/Users/EditUser';
-// import ModalUsers from '../../Modals/ModalEditUsers';
 import { useAppState } from '../../../hooks/appState';
 
 interface Props {
   user: DirectusUser;
 }
-dayjs.locale('fr');
-dayjs.extend(localizedFormat); // Activer le plugin localizedFormat
+moment.locale('fr');
 
 function renderRoles(data: DirectusUser) {
   if (data.status === 'active') {
@@ -95,13 +92,13 @@ export default function UserLine({ user }: Props) {
         </td>
         <td
           className={`px-3 py-5 text-sm text-center ${
-            dayjs(user.last_access).isBefore(dayjs().subtract(6, 'months')) // Si date de connexion supérieure à 6 mois
+            moment(user.last_access).isBefore(moment().subtract(6, 'months')) // Si date de connexion supérieure à 6 mois
               ? ' text-red-500' // Date en rouge rouge
               : ' text-gray-500'
           } whitespace-nowrap`}
         >
-          {dayjs(user.last_access).format('DD MMMM YYYY') !== 'Invalid Date'
-            ? dayjs(user.last_access).format('DD MMMM YYYY')
+          {moment(user.last_access).isValid()
+            ? moment(user.last_access).format('DD MMMM YYYY')
             : 'Jamais connecté'}
         </td>
         <td className="px-3 py-5 text-sm text-gray-500 whitespace-nowrap">

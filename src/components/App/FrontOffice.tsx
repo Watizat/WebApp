@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { useMediaQuery } from 'react-responsive';
 import Footer from '../FrontOffice/Footer/Footer';
 import Header from '../FrontOffice/Header/Default';
 
@@ -9,7 +8,6 @@ import { fetchZones } from '../../api/admin';
 import { fetchCategories, fetchDays } from '../../api/organisms';
 
 export default function FrontApp() {
-  const isTablet = useMediaQuery({ query: '(min-width: 769px)' });
   const { organismState, setAdminState, setOrganismState } = useAppState();
   const [loading, setLoading] = useState(true);
   const { langue } = organismState;
@@ -50,7 +48,9 @@ export default function FrontApp() {
         <>
           <Header />
           <Outlet />
-          {isTablet && <Footer />}
+          <div className="hidden md:block">
+            <Footer />
+          </div>
         </>
       )}
     </main>

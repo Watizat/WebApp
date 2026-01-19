@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { MapContainer, Marker, TileLayer } from 'react-leaflet';
 import { Organism } from '../../../@types/organism';
 import { useAppState } from '../../../hooks/appState';
-import '../Resultats/Map/Map.scss';
+import '../Resultats/Map/Map.css';
 
 export default function Map() {
   const [position, setPosition] = useState({ lat: 43.6, lng: 1.433333 });

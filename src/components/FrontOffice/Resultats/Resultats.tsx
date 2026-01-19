@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useMediaQuery } from 'react-responsive';
 import { useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../../hooks/appState';
 import { fetchCityPosition, fetchOrganisms } from '../../../api/organisms';
@@ -10,7 +9,6 @@ import Map from './Map/Map';
 import MobileToggle from './MobileToggle';
 
 export default function Resultats() {
-  const isTouch = useMediaQuery({ query: '(max-width: 1023px)' });
   const { setOrganismState } = useAppState();
   const [searchParams] = useSearchParams();
   const city = searchParams.get('city');
@@ -51,21 +49,16 @@ export default function Resultats() {
         setIsOpenSlide={setIsOpenSlide}
         isMobileMap={isMobileMap}
       />
-      {isTouch ? (
-        <>
-          <section className="absolute inline-flex w-full min-h-mapHeight h-mapHeight py-auto">
-            <Map cityPosition={cityPosition} />
-          </section>
-          <MobileToggle
-            isMobileMap={isMobileMap}
-            setIsMobileMap={setIsMobileMap}
-          />
-        </>
-      ) : (
-        <section className="absolute flex w-full min-h-mapHeight h-mapHeight py-auto 2xl:pl-[45rem] xl:pl-[40rem] pl-[30rem]">
-          <Map cityPosition={cityPosition} />
-        </section>
-      )}
+      <section className="absolute inline-flex w-full min-h-mapHeight h-mapHeight py-auto lg:hidden">
+        <Map cityPosition={cityPosition} />
+      </section>
+      <MobileToggle
+        isMobileMap={isMobileMap}
+        setIsMobileMap={setIsMobileMap}
+      />
+      <section className="absolute hidden w-full min-h-mapHeight h-mapHeight py-auto 2xl:pl-[45rem] xl:pl-[40rem] pl-[30rem] lg:flex">
+        <Map cityPosition={cityPosition} />
+      </section>
     </main>
   );
 }

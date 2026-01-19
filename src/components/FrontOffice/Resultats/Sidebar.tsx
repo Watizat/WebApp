@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useMediaQuery } from 'react-responsive';
 
 import { useAppState } from '../../../hooks/appState';
 import SkeletonCard from '../../Skeleton/Resultats/Card';
@@ -19,8 +18,6 @@ export default function Sidebar({
   setIsOpenSlide,
   isMobileMap,
 }: SidebarProps) {
-  const isTouch = useMediaQuery({ query: '(max-width: 1023px)' });
-
   const { organismState, setOrganismState } = useAppState();
   const { organisms, filteredOrganisms, categoryFilter, scroll } =
     organismState;
@@ -95,11 +92,9 @@ export default function Sidebar({
 
   return (
     <section
-      className={
-        isTouch && isMobileMap
-          ? 'hidden '
-          : 'w-full flex fixed inset-y-0 z-50 lg:w-[30rem] xl:w-[40rem] 2xl:w-[45rem] lg:flex-col mt-16'
-      }
+      className={`w-full fixed inset-y-0 z-50 mt-16 ${
+        isMobileMap ? 'hidden lg:flex' : 'flex'
+      } lg:w-[30rem] xl:w-[40rem] 2xl:w-[45rem] lg:flex-col`}
     >
       <div className="flex flex-col h-full overflow-y-auto bg-white border-r border-gray-200 grow">
         <div

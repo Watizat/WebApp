@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAppState } from '../../../../hooks/appState';
 import Icon from '../../../../ui/icon/icon';
 
-import './Map.scss';
+import './Map.css';
 
 interface MapProps {
   cityPosition:
