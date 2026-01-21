@@ -5,7 +5,11 @@ import { axiosInstance } from '../utils/axios';
 import { getUserDataFromLocalStorage } from '../utils/user';
 
 export const fetchMe = async () => {
-  const { data } = await axiosInstance.get('/users/me');
+  const { data } = await axiosInstance.get('/users/me', {
+    params: {
+      fields: '*,role.name',
+    },
+  });
   return data.data;
 };
 

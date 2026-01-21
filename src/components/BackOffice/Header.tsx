@@ -1,7 +1,11 @@
 import { ChangeEvent, useEffect, useState, Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Listbox, Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import {
+  Bars3Icon,
+  ChevronDownIcon,
+  UserCircleIcon,
+} from '@heroicons/react/24/outline';
 import { fetchMe, logout as logoutRequest } from '../../api/user';
 import { useAppState } from '../../hooks/appState';
 import { fetchZones } from '../../api/admin';
@@ -202,10 +206,9 @@ export default function Header({ setSidebarOpen }: Props) {
           <Menu as="div" className="relative">
             <Menu.Button className="-m-1.5 flex items-center p-1.5">
               <span className="sr-only">Open user menu</span>
-              <img
-                className="w-8 h-8 rounded-full bg-gray-50"
-                src="https://source.boringavatars.com/beam?colors=ff8482,ffb294,f8d8a5,91be95,635a49"
-                alt=""
+              <UserCircleIcon
+                className="w-8 h-8 text-gray-400"
+                aria-hidden="true"
               />
               <span className="hidden lg:flex lg:items-center">
                 <span

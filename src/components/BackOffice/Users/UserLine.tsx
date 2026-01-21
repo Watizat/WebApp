@@ -1,6 +1,7 @@
 import moment from 'moment';
 import 'moment/locale/fr';
 import { useState } from 'react';
+import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { DirectusUser } from '../../../@types/user';
 import SlideEditUser from '../SlideOvers/Users/EditUser';
 import { useAppState } from '../../../hooks/appState';
@@ -53,7 +54,6 @@ export default function UserLine({ user }: Props) {
   const [isOpenSlide, setIsOpenSlide] = useState(false);
   const { adminState } = useAppState();
   const { zones } = adminState;
-  const uniqueQueryParam = Math.random();
   const { className, text } = renderRoles(user);
 
   return (
@@ -66,12 +66,8 @@ export default function UserLine({ user }: Props) {
       <tr key={user.email} className="select-none">
         <td className="py-2 pl-4 pr-3 text-sm whitespace-nowrap sm:pl-0">
           <div className="flex items-center">
-            <div className="flex-shrink-0 w-9 h-9">
-              <img
-                className="rounded-full w-9 h-9"
-                src={`https://source.boringavatars.com/beam?${uniqueQueryParam}`}
-                alt=""
-              />
+            <div className="flex-shrink-0 w-9 h-9 text-gray-400">
+              <UserCircleIcon className="w-9 h-9" aria-hidden="true" />
             </div>
             <div className="ml-4 font-medium text-gray-900">
               {user.first_name} {user.last_name}
