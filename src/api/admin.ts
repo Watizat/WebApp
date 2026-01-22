@@ -2,6 +2,14 @@ import { Organism, Role, Zone } from '../@types/organism';
 import { DirectusUser } from '../@types/user';
 import { axiosInstance } from '../utils/axios';
 
+let zonesCache: Zone[] | null = null;
+let zonesPromise: Promise<Zone[]> | null = null;
+
+export const clearZonesCache = () => {
+  zonesCache = null;
+  zonesPromise = null;
+};
+
 export const fetchAdminOrganisms = async ({
   city,
   isDisplayArchivedOrga = true,
@@ -114,9 +122,23 @@ export const fetchAdminOrganism = async (id: number) => {
   return data.data[0];
 };
 
-export const fetchZones = async () => {
-  const { data } = await axiosInstance.get<{ data: Zone[] }>('/items/zone');
-  return data.data;
+export const fetchZones = async (options?: { force?: boolean }) => {
+  if (!options?.force && zonesCache) {
+    return zonesCache;
+  }
+  if (!options?.force && zonesPromise) {
+    return zonesPromise;
+  }
+  zonesPromise = axiosInstance
+    .get<{ data: Zone[] }>('/items/zone')
+    .then(({ data }) => {
+      zonesCache = data.data;
+      return zonesCache;
+    })
+    .finally(() => {
+      zonesPromise = null;
+    });
+  return zonesPromise;
 };
 
 export const fetchRoles = async () => {

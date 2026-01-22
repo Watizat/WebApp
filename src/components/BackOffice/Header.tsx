@@ -47,14 +47,6 @@ export default function Header({ setSidebarOpen }: Props) {
     loadZones();
   }, [setAdminState]);
 
-  useEffect(() => {
-    const loadZones = async () => {
-      const zonesList = await fetchZones();
-      setAdminState((prev) => ({ ...prev, zones: zonesList }));
-    };
-    loadZones();
-  }, [setAdminState]);
-
   // Récupération du contexte
   const appContext = useAppContext();
   if (!appContext) {
@@ -72,6 +64,7 @@ export default function Header({ setSidebarOpen }: Props) {
         isActive: false,
         lastActionDate: null,
         token: null,
+        roleName: null,
       }));
     });
   };

@@ -6,7 +6,7 @@ import { useAppState } from '../../hooks/appState';
 import { fetchRoles, fetchZones } from '../../api/admin';
 import { fetchCategories, fetchDays } from '../../api/organisms';
 import { fetchMe } from '../../api/user';
-import { getUserDataFromLocalStorage } from '../../utils/user';
+import { getUserDataFromLocalStorage, removeUserDataFromLocalStorage } from '../../utils/user';
 import NoMobile from '../Errors/NoMobile';
 import Sidebar from '../BackOffice/Sidebar/SideBase';
 import Header from '../BackOffice/Header';
@@ -56,21 +56,33 @@ export default function App() {
       try {
         const meData = await fetchMe();
 
-        // User en attente de validation
-        if (meData.role === 'NewUser') {
-          setIsLoading(false);
-          navigate('/new-user');
+        if (!meData) {
+          navigate('/login');
           return;
         }
-        // Users en attente de supression
-        if (meData.role === 'UserToDelete') {
-          setIsLoading(false);
-          navigate('/');
+        const roleName = typeof meData.role === 'string' ? meData.role : meData.role?.name;
+
+        if (roleName && ['UserToDelete', 'NewUser'].includes(roleName)) {
+          removeUserDataFromLocalStorage();
+          setUserState(prev => ({
+            ...prev,
+            isLogged: false,
+            isActive: false,
+            lastActionDate: null,
+            token: null,
+            roleName: null,
+            isAdmin: false,
+          }));
+          navigate('/login');
           return;
         }
-        if (meData.role.name === 'Administrator') {
-          setUserState(prev => ({ ...prev, isAdmin: true }));
-        }
+
+        const isAdminRole = roleName === 'Administrator' || roleName === 'RefLocal';
+        setUserState(prev => ({
+          ...prev,
+          isAdmin: isAdminRole,
+          roleName: roleName || null,
+        }));
       } catch (error) {
         // If auth check fails, return to login
         navigate('/login');
