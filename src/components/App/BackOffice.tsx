@@ -6,15 +6,14 @@ import { useAppState } from '../../hooks/appState';
 import { fetchRoles, fetchZones } from '../../api/admin';
 import { fetchCategories, fetchDays } from '../../api/organisms';
 import { fetchMe } from '../../api/user';
-import { getUserDataFromLocalStorage } from '../../utils/user';
+import { getUserDataFromLocalStorage, removeUserDataFromLocalStorage } from '../../utils/user';
 import NoMobile from '../Errors/NoMobile';
 import Sidebar from '../BackOffice/Sidebar/SideBase';
 import Header from '../BackOffice/Header';
 import BackOfficeContext from '../../context/BackOfficeContext';
 
 export default function App() {
-  const { organismState, setAdminState, setOrganismState, setUserState } =
-    useAppState();
+  const { organismState, setAdminState, setOrganismState, setUserState } = useAppState();
   const user = getUserDataFromLocalStorage();
   const { pathname } = useLocation();
   const { langue } = organismState;
@@ -24,9 +23,9 @@ export default function App() {
 
   useEffect(() => {
     const loadCategories = async () => {
-      setOrganismState((prev) => ({ ...prev, isLoading: true }));
+      setOrganismState(prev => ({ ...prev, isLoading: true }));
       const categories = await fetchCategories();
-      setOrganismState((prev) => ({
+      setOrganismState(prev => ({
         ...prev,
         categories,
         isLoading: false,
@@ -38,18 +37,15 @@ export default function App() {
   useEffect(() => {
     const loadDays = async () => {
       const days = await fetchDays(1);
-      setOrganismState((prev) => ({ ...prev, days }));
+      setOrganismState(prev => ({ ...prev, days }));
     };
     loadDays();
   }, [setOrganismState, langue]);
 
   useEffect(() => {
     const loadAdminData = async () => {
-      const [zones, roles] = await Promise.all([
-        fetchZones(),
-        fetchRoles(),
-      ]);
-      setAdminState((prev) => ({ ...prev, zones, roles }));
+      const [zones, roles] = await Promise.all([fetchZones(), fetchRoles()]);
+      setAdminState(prev => ({ ...prev, zones, roles }));
     };
     loadAdminData();
   }, [setAdminState]);
@@ -60,21 +56,33 @@ export default function App() {
       try {
         const meData = await fetchMe();
 
-        // User en attente de validation
-        if (meData.role === '5754603f-add3-4823-9c77-a2f9789074fc') {
-          setIsLoading(false);
-          navigate('/new-user');
+        if (!meData) {
+          navigate('/login');
           return;
         }
-        // Users en attente de supression
-        if (meData.role === 'fd46fe69-2a5d-4742-a536-cfad86d3e81f') {
-          setIsLoading(false);
-          navigate('/');
+        const roleName = typeof meData.role === 'string' ? meData.role : meData.role?.name;
+
+        if (roleName && ['UserToDelete', 'NewUser'].includes(roleName)) {
+          removeUserDataFromLocalStorage();
+          setUserState(prev => ({
+            ...prev,
+            isLogged: false,
+            isActive: false,
+            lastActionDate: null,
+            token: null,
+            roleName: null,
+            isAdmin: false,
+          }));
+          navigate('/login');
           return;
         }
-        if (meData.role === '53de6ec2-6d70-48c8-8532-61f96133f139') {
-          setUserState((prev) => ({ ...prev, isAdmin: true }));
-        }
+
+        const isAdminRole = roleName === 'Administrator' || roleName === 'RefLocal';
+        setUserState(prev => ({
+          ...prev,
+          isAdmin: isAdminRole,
+          roleName: roleName || null,
+        }));
       } catch (error) {
         // If auth check fails, return to login
         navigate('/login');
@@ -86,31 +94,25 @@ export default function App() {
   }, [navigate, setUserState]);
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to='/login' replace />;
   }
 
   if (pathname === '/admin' || pathname === '/admin/') {
-    return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to='/admin/dashboard' replace />;
   }
 
   return (
     <BackOfficeContext>
-      <div className="md:hidden">
+      <div className='md:hidden'>
         <NoMobile />
       </div>
-      <div className="hidden md:block">
+      <div className='hidden md:block'>
         {!isLoading && (
           <>
-            <Sidebar
-              sidebarOpen={sidebarOpen}
-              setSidebarOpen={setSidebarOpen}
-            />
+            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
             <div
-              className={` flex flex-col flex-1  lg:pl-20 ${
-                pathname !== '/admin/dashboard' && '2xl:pl-72 '
-              } ${
-                pathname === '/admin/dashboard' ||
-                pathname === '/admin/profil'
+              className={` flex flex-col flex-1  lg:pl-20 ${pathname !== '/admin/dashboard' && '2xl:pl-72 '} ${
+                pathname === '/admin/dashboard' || pathname === '/admin/profil'
                   ? 'h-full min-h-full'
                   : 'h-max min-h-max'
               }`}

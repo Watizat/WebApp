@@ -106,6 +106,7 @@ const initialUserState: UserState = {
   isRegistered: false,
   ...getUserDataFromLocalStorage(),
   isAdmin: false,
+  roleName: null,
   city: localStorage.getItem('city') || null,
 };
 
