@@ -27,3 +27,4 @@ dist-ssr
 *.sw?
 yarn.lock
 .gitignore
+export.md
