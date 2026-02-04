@@ -54,7 +54,7 @@ export default function App() {
     async function check() {
       setIsLoading(true);
       try {
-        const meData = await fetchMe();
+        const [meData, zones] = await Promise.all([fetchMe(), fetchZones()]);
 
         if (!meData) {
           navigate('/login');
@@ -78,10 +78,19 @@ export default function App() {
         }
 
         const isAdminRole = roleName === 'Administrator' || roleName === 'RefLocal';
+        const zoneName = zones.find(zone => zone.id === meData.zone)?.name || null;
+        const hasStoredCity = !!localStorage.getItem('city');
+
+        const nextCity = !isAdminRole ? zoneName : hasStoredCity ? localStorage.getItem('city') : zoneName;
+        if (nextCity) {
+          localStorage.setItem('city', nextCity);
+        }
+
         setUserState(prev => ({
           ...prev,
           isAdmin: isAdminRole,
           roleName: roleName || null,
+          city: nextCity,
         }));
       } catch (error) {
         // If auth check fails, return to login
