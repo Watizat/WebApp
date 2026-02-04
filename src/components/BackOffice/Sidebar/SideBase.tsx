@@ -12,8 +12,9 @@ import {
   CommandLineIcon,
 } from '@heroicons/react/24/outline';
 
-import { useAppDispatch } from '../../../hooks/redux';
-import { logout } from '../../../store/reducers/user';
+import { useAppState } from '../../../hooks/appState';
+import { logout as logoutRequest } from '../../../api/user';
+import { removeUserDataFromLocalStorage } from '../../../utils/user';
 
 import Tablet from './SideTablet';
 import Desktop from './SideDesktop';
@@ -27,7 +28,8 @@ interface Props {
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
   const [isOpenModalVersions, setIsOpenModalVersions] = useState(false);
-  const dispatch = useAppDispatch();
+  const { userState, setUserState } = useAppState();
+  const { roleName } = userState;
 
   const memoizedNavigation = useMemo(() => {
     return [
@@ -98,9 +100,30 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
     ];
   }, [setSidebarOpen]);
 
+  const allowedNav = useMemo(() => {
+    const role = roleName || '';
+    const roleToItems: Record<string, string[]> = {
+      Administrator: ['Dashboard', 'Edition', 'Traduction', 'Print', 'Actualisation', 'Utilisateur·ice·s', 'Back-end'],
+      RefLocal: ['Dashboard', 'Edition', 'Traduction', 'Print', 'Actualisation', 'Utilisateur·ice·s'],
+      Edition: ['Dashboard', 'Edition', 'Traduction', 'Print', 'Actualisation'],
+    };
+
+    return new Set(roleToItems[role] || []);
+  }, [roleName]);
+
   const memoizedActions = useMemo(() => {
     const handleLogout = () => {
-      dispatch(logout());
+      logoutRequest().finally(() => {
+        removeUserDataFromLocalStorage();
+        setUserState(prev => ({
+          ...prev,
+          isLogged: false,
+          isActive: false,
+          lastActionDate: null,
+          token: null,
+          roleName: null,
+        }));
+      });
     };
 
     return [
@@ -126,22 +149,21 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
         onclick: handleLogout,
       },
     ];
-  }, [dispatch, setSidebarOpen]);
+  }, [setSidebarOpen, setUserState]);
+
+  const filteredNavigation = memoizedNavigation.filter(item => allowedNav.has(item.name));
 
   return (
     <>
-      <AppVersions
-        isOpenModal={isOpenModalVersions}
-        setIsOpenModal={setIsOpenModalVersions}
-      />
+      <AppVersions isOpenModal={isOpenModalVersions} setIsOpenModal={setIsOpenModalVersions} />
       <Tablet
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        navigation={memoizedNavigation}
+        navigation={filteredNavigation}
         actions={memoizedActions}
       />
-      <Desktop navigation={memoizedNavigation} actions={memoizedActions} />
-      <Widescreen navigation={memoizedNavigation} actions={memoizedActions} />
+      <Desktop navigation={filteredNavigation} actions={memoizedActions} />
+      <Widescreen navigation={filteredNavigation} actions={memoizedActions} />
     </>
   );
 }

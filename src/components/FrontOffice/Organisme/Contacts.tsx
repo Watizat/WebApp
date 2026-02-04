@@ -2,14 +2,15 @@ import { Link } from 'react-router-dom';
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/solid';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function Contact() {
-  const organism = useAppSelector((state) => state.organism.organism);
+  const { organismState } = useAppState();
+  const { organism } = organismState;
 
   if (organism === null) {
     return <span>Erreur</span>;

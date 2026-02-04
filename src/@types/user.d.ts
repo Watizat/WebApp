@@ -14,6 +14,7 @@ export interface UserState {
   lastActionDate: number | null;
   isRegistered: boolean;
   isAdmin: boolean;
+  roleName: string | null;
   city: string | null;
 }
 
@@ -40,7 +41,7 @@ export interface DirectusUser {
   last_name: string;
   email: string;
   password: string;
-  role: string;
+  role: string | { id?: string; name?: string };
   zone: number;
   last_access: string;
   status: string;

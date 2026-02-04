@@ -2,8 +2,9 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Link, Navigate } from 'react-router-dom';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import { useAppDispatch } from '../../hooks/redux';
-import { logout } from '../../store/reducers/user';
+import { useAppState } from '../../hooks/appState';
+import { logout as logoutRequest } from '../../api/user';
+import { removeUserDataFromLocalStorage } from '../../utils/user';
 import AlertBase from './components/ModalBase';
 
 interface Props {
@@ -12,7 +13,7 @@ interface Props {
 }
 
 function ModalInactivityDetector({ setIsOpenModal, setAnswerCount }: Props) {
-  const dispatch = useAppDispatch();
+  const { setUserState } = useAppState();
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsOpenModal(false);
@@ -29,7 +30,16 @@ function ModalInactivityDetector({ setIsOpenModal, setAnswerCount }: Props) {
   });
 
   const handleLogout = () => {
-    dispatch(logout());
+    logoutRequest().finally(() => {
+      removeUserDataFromLocalStorage();
+      setUserState((prev) => ({
+        ...prev,
+        isLogged: false,
+        isActive: false,
+        lastActionDate: null,
+        token: null,
+      }));
+    });
     setIsOpenModal(false);
   };
   if (countdown <= 0) {

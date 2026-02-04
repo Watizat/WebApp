@@ -6,13 +6,13 @@ import ModalBase from './components/ModalBase';
 import { Inputs } from '../../@types/formInputs';
 import Textarea from '../BackOffice/components/Textarea';
 
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { editOrganismVisibility } from '../../store/reducers/crud';
-import { Organism } from '../../@types/organism';
+import { useAppState } from '../../hooks/appState';
 import {
   fetchAdminOrganisms,
-  setAdminOrganism,
-} from '../../store/reducers/admin';
+  fetchAdminOrganism,
+} from '../../api/admin';
+import { editOrganismVisibility } from '../../api/crud';
+import { Organism } from '../../@types/organism';
 import { useAppContext } from '../../context/BackOfficeContext';
 
 interface Props {
@@ -36,7 +36,8 @@ export default function ArchiveOrganism({
     formState: { errors },
     reset,
   } = useForm<Inputs>();
-  const dispatch = useAppDispatch();
+  const { adminState, userState, setAdminState, setCrudState } =
+    useAppState();
 
   // Réinitialiser le formulaire à l'ouverture de la Modal
   useEffect(() => {
@@ -45,60 +46,56 @@ export default function ArchiveOrganism({
     }
   }, [isOpenModal, reset]);
 
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
+  const organismId = adminState.organism?.id as number;
 
   // Récupération du contexte
   const appContext = useAppContext();
-  const city = useAppSelector((state) => state.user.city as string);
+  const city = userState.city as string;
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
     const updatedVisibility = !organism.visible;
-    await dispatch(
-      editOrganismVisibility({
-        formData,
-        organismId,
-        isVisible: updatedVisibility,
-      })
-    );
+    setCrudState({ isSaving: true });
+    await editOrganismVisibility({
+      formData,
+      organismId,
+      isVisible: updatedVisibility,
+    });
     reset();
     setIsOpenModal(false);
-    await dispatch(setAdminOrganism(organismId));
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
     if (appContext) {
-      dispatch(
-        fetchAdminOrganisms({
-          city,
-        })
-      );
+      const organisms = await fetchAdminOrganisms({ city });
+      setAdminState((prev) => ({ ...prev, organisms, isLoading: false }));
     }
+    setCrudState({ isSaving: false });
   };
 
   const updateVisibilityMessage: SubmitHandler<Inputs> = async (formData) => {
     // Mise à jour du message sans changer la visibilité
-    await dispatch(
-      editOrganismVisibility({
-        formData,
-        organismId,
-        isVisible: organism.visible, // La visibilité reste inchangée
-      })
-    );
+    setCrudState({ isSaving: true });
+    await editOrganismVisibility({
+      formData,
+      organismId,
+      isVisible: organism.visible, // La visibilité reste inchangée
+    });
 
     reset();
     setIsOpenModal(false);
 
     // Rafraîchissement des données de l'organisme
-    await dispatch(setAdminOrganism(organismId));
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
 
     // Rafraîchissement de la liste des organismes
     if (appContext) {
-      dispatch(
-        fetchAdminOrganisms({
-          city,
-          isDisplayArchivedOrga: appContext.isDisplayArchivedOrga,
-        })
-      );
+      const organisms = await fetchAdminOrganisms({
+        city,
+        isDisplayArchivedOrga: appContext.isDisplayArchivedOrga,
+      });
+      setAdminState((prev) => ({ ...prev, organisms, isLoading: false }));
     }
+    setCrudState({ isSaving: false });
   };
 
   const cancelButtonRef = useRef(null);

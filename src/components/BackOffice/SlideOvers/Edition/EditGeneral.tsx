@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Organism } from '../../../../@types/organism';
 import { Inputs } from '../../../../@types/formInputs';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import { setAdminOrganism } from '../../../../store/reducers/admin';
-import { editOrganismInfos } from '../../../../store/reducers/crud';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchAdminOrganism } from '../../../../api/admin';
+import { editOrganismInfos } from '../../../../api/crud';
 import {
   validateEmail,
   validatePhoneNumber,
@@ -25,7 +25,7 @@ export default function EditOrgaGeneral({
   setIsOpenSlide,
   organism,
 }: Props) {
-  const dispatch = useAppDispatch();
+  const { adminState, crudState, setAdminState, setCrudState } = useAppState();
 
   const {
     register, // Récupère les fonctions register
@@ -41,16 +41,16 @@ export default function EditOrgaGeneral({
     }
   }, [isOpenSlide, reset]);
 
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
-
-  const isSaving = useAppSelector((state) => state.crud.isSaving);
+  const organismId = adminState.organism?.id as number;
+  const { isSaving } = crudState;
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
-    await dispatch(editOrganismInfos({ formData, organismId }));
+    setCrudState({ isSaving: true });
+    await editOrganismInfos({ formData, organismId });
     setIsOpenSlide(false);
-    await dispatch(setAdminOrganism(organismId));
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
+    setCrudState({ isSaving: false });
   };
 
   const handleCloseSlide = () => {

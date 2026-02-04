@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAppSelector } from '../../../../hooks/redux';
+import { useAppState } from '../../../../hooks/appState';
 import Card from './components/Card';
 import SwitchToogle from '../../components/ToggleDisplay';
 import Schedules from '../../../components/Schedules';
@@ -7,7 +7,8 @@ import EditOrgaInfos from '../../SlideOvers/Edition/EditInfos';
 
 export default function Informations() {
   const [isOpenSlide, setIsOpenSlide] = useState(false);
-  const organism = useAppSelector((state) => state.admin.organism);
+  const { adminState } = useAppState();
+  const { organism } = adminState;
   if (organism === null) {
     return <span>Erreur</span>;
   }

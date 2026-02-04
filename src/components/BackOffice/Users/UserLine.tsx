@@ -1,17 +1,15 @@
-import dayjs from 'dayjs';
-import 'dayjs/locale/fr'; // Importez le fichier de localisation français
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import moment from 'moment';
+import 'moment/locale/fr';
 import { useState } from 'react';
+import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { DirectusUser } from '../../../@types/user';
 import SlideEditUser from '../SlideOvers/Users/EditUser';
-// import ModalUsers from '../../Modals/ModalEditUsers';
-import { useAppSelector } from '../../../hooks/redux';
+import { useAppState } from '../../../hooks/appState';
 
 interface Props {
   user: DirectusUser;
 }
-dayjs.locale('fr');
-dayjs.extend(localizedFormat); // Activer le plugin localizedFormat
+moment.locale('fr');
 
 function renderRoles(data: DirectusUser) {
   if (data.status === 'active') {
@@ -54,8 +52,8 @@ function renderRoles(data: DirectusUser) {
 
 export default function UserLine({ user }: Props) {
   const [isOpenSlide, setIsOpenSlide] = useState(false);
-  const zones = useAppSelector((state) => state.admin.zones);
-  const uniqueQueryParam = Math.random();
+  const { adminState } = useAppState();
+  const { zones } = adminState;
   const { className, text } = renderRoles(user);
 
   return (
@@ -68,12 +66,8 @@ export default function UserLine({ user }: Props) {
       <tr key={user.email} className="select-none">
         <td className="py-2 pl-4 pr-3 text-sm whitespace-nowrap sm:pl-0">
           <div className="flex items-center">
-            <div className="flex-shrink-0 w-9 h-9">
-              <img
-                className="rounded-full w-9 h-9"
-                src={`https://source.boringavatars.com/beam?${uniqueQueryParam}`}
-                alt=""
-              />
+            <div className="flex-shrink-0 w-9 h-9 text-gray-400">
+              <UserCircleIcon className="w-9 h-9" aria-hidden="true" />
             </div>
             <div className="ml-4 font-medium text-gray-900">
               {user.first_name} {user.last_name}
@@ -94,13 +88,13 @@ export default function UserLine({ user }: Props) {
         </td>
         <td
           className={`px-3 py-5 text-sm text-center ${
-            dayjs(user.last_access).isBefore(dayjs().subtract(6, 'months')) // Si date de connexion supérieure à 6 mois
+            moment(user.last_access).isBefore(moment().subtract(6, 'months')) // Si date de connexion supérieure à 6 mois
               ? ' text-red-500' // Date en rouge rouge
               : ' text-gray-500'
           } whitespace-nowrap`}
         >
-          {dayjs(user.last_access).format('DD MMMM YYYY') !== 'Invalid Date'
-            ? dayjs(user.last_access).format('DD MMMM YYYY')
+          {moment(user.last_access).isValid()
+            ? moment(user.last_access).format('DD MMMM YYYY')
             : 'Jamais connecté'}
         </td>
         <td className="px-3 py-5 text-sm text-gray-500 whitespace-nowrap">

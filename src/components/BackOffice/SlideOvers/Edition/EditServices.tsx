@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Service } from '../../../../@types/organism';
 import { Inputs } from '../../../../@types/formInputs';
-import { useAppDispatch, useAppSelector } from '../../../../hooks/redux';
-import { setAdminOrganism } from '../../../../store/reducers/admin';
-import { editService } from '../../../../store/reducers/crud';
+import { useAppState } from '../../../../hooks/appState';
+import { fetchAdminOrganism } from '../../../../api/admin';
+import { editService } from '../../../../api/crud';
 import Slide from '../components/Slide';
 import Header from '../components/Header';
 import Input from '../../components/Input';
@@ -24,8 +24,9 @@ export default function EditOrgaServices({
   setIsOpenSlide,
   service,
 }: Props) {
-  const dispatch = useAppDispatch();
-  const days = useAppSelector((state) => state.organism.days);
+  const { adminState, crudState, organismState, setAdminState, setCrudState } =
+    useAppState();
+  const { days, categories: categoriesList } = organismState;
 
   const {
     register, // Récupère les fonctions register
@@ -41,19 +42,19 @@ export default function EditOrgaServices({
     }
   }, [isOpenSlide, reset]);
 
-  const categoriesList = useAppSelector((state) => state.organism.categories);
-  const organismId = useAppSelector(
-    (state) => state.admin.organism?.id as number
-  );
-  const isSaving = useAppSelector((state) => state.crud.isSaving);
+  const organismId = adminState.organism?.id as number;
+  const { isSaving } = crudState;
 
   const onSubmit: SubmitHandler<Inputs> = async (formData) => {
     const serviceId = service.id;
     const serviceTranslationId = service.translations[0].id;
-    await dispatch(editService({ formData, serviceId, serviceTranslationId }));
+    setCrudState({ isSaving: true });
+    await editService({ formData, serviceId, serviceTranslationId });
 
     setIsOpenSlide(false);
-    await dispatch(setAdminOrganism(organismId));
+    const organismData = await fetchAdminOrganism(organismId);
+    setAdminState((prev) => ({ ...prev, organism: organismData }));
+    setCrudState({ isSaving: false });
   };
 
   const handleCloseSlide = () => {

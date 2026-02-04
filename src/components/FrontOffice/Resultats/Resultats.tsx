@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useMediaQuery } from 'react-responsive';
 import { useSearchParams } from 'react-router-dom';
-import { useAppDispatch } from '../../../hooks/redux';
-import {
-  fetchCityPosition,
-  fetchOrganisms,
-} from '../../../store/reducers/organisms';
+import { useAppState } from '../../../hooks/appState';
+import { fetchCityPosition, fetchOrganisms } from '../../../api/organisms';
 
 import Sidebar from './Sidebar';
 import Header from '../Header/Results';
@@ -13,8 +9,7 @@ import Map from './Map/Map';
 import MobileToggle from './MobileToggle';
 
 export default function Resultats() {
-  const isTouch = useMediaQuery({ query: '(max-width: 1023px)' });
-  const dispatch = useAppDispatch();
+  const { setOrganismState } = useAppState();
   const [searchParams] = useSearchParams();
   const city = searchParams.get('city');
 
@@ -31,15 +26,20 @@ export default function Resultats() {
 
   useEffect(() => {
     async function fetchCity() {
-      const { payload } = await dispatch(
-        fetchCityPosition(localStorage.getItem('city'))
-      );
-      const { latitude, longitude } = payload;
+      const cityData = await fetchCityPosition(localStorage.getItem('city'));
+      const { latitude, longitude } = cityData;
       setCityPosition({ lat: latitude, lng: longitude });
-      await dispatch(fetchOrganisms(city as string));
+      setOrganismState((prev) => ({ ...prev, isLoading: true }));
+      const organisms = await fetchOrganisms(city as string);
+      setOrganismState((prev) => ({
+        ...prev,
+        organisms,
+        filteredOrganisms: organisms,
+        isLoading: false,
+      }));
     }
     fetchCity();
-  }, [dispatch, city]);
+  }, [setOrganismState, city]);
 
   return (
     <main>
@@ -49,21 +49,16 @@ export default function Resultats() {
         setIsOpenSlide={setIsOpenSlide}
         isMobileMap={isMobileMap}
       />
-      {isTouch ? (
-        <>
-          <section className="absolute inline-flex w-full min-h-mapHeight h-mapHeight py-auto">
-            <Map cityPosition={cityPosition} />
-          </section>
-          <MobileToggle
-            isMobileMap={isMobileMap}
-            setIsMobileMap={setIsMobileMap}
-          />
-        </>
-      ) : (
-        <section className="absolute flex w-full min-h-mapHeight h-mapHeight py-auto 2xl:pl-[45rem] xl:pl-[40rem] pl-[30rem]">
-          <Map cityPosition={cityPosition} />
-        </section>
-      )}
+      <section className="absolute inline-flex w-full min-h-mapHeight h-mapHeight py-auto lg:hidden">
+        <Map cityPosition={cityPosition} />
+      </section>
+      <MobileToggle
+        isMobileMap={isMobileMap}
+        setIsMobileMap={setIsMobileMap}
+      />
+      <section className="absolute hidden w-full min-h-mapHeight h-mapHeight py-auto 2xl:pl-[45rem] xl:pl-[40rem] pl-[30rem] lg:flex">
+        <Map cityPosition={cityPosition} />
+      </section>
     </main>
   );
 }

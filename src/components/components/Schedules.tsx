@@ -1,5 +1,5 @@
 import { Schedule } from '../../@types/organism';
-import { useAppSelector } from '../../hooks/redux';
+import { useAppState } from '../../hooks/appState';
 import { getOpeningHours } from '../../utils/format';
 
 interface Props {
@@ -7,7 +7,8 @@ interface Props {
 }
 
 export default function Schedules({ schedule }: Props) {
-  const days = useAppSelector((state) => state.organism.days);
+  const { organismState } = useAppState();
+  const { days } = organismState;
 
   // Créer une copie du tableau avant de trier
   const orderedSchedule = schedule.map((objet) => ({ ...objet }));
