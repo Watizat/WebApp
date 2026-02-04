@@ -1,12 +1,10 @@
-import jwt_decode from 'jwt-decode';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Inputs } from '../../../../@types/formInputs';
-import { DirectusUser, UserSession } from '../../../../@types/user';
+import { DirectusUser } from '../../../../@types/user';
 import { useAppState } from '../../../../hooks/appState';
 import { fetchUsers } from '../../../../api/admin';
 import { editUser, updateUserStatus, fetchMe } from '../../../../api/user';
-import { getUserDataFromLocalStorage } from '../../../../utils/user';
 import { validateEmail } from '../../../../utils/form/form';
 import Slide from '../components/Slide';
 import Header from '../components/Header';
@@ -50,32 +48,18 @@ export default function SlideEditUser({
     const cityId = cityLocal
       ? zones.find((zone) => zone.name === cityLocal)
       : zones.find((zone) => zone.name === city);
-    const localUser = getUserDataFromLocalStorage();
     const me = await fetchMe();
-    const { zone } = me;
-
-    if (!localUser?.token) {
-      return;
-    }
-    try {
-        const decodedUser = jwt_decode(
-          localUser.token.access_token
-        ) as UserSession;
-        if (decodedUser.role === '53de6ec2-6d70-48c8-8532-61f96133f139') {
-          if (cityId !== undefined) {
-            const usersList = await fetchUsers(cityId.id.toString());
-            setAdminState((prev) => ({ ...prev, users: usersList }));
-          } else {
-            const usersList = await fetchUsers(null);
-            setAdminState((prev) => ({ ...prev, users: usersList }));
-          }
-        } else {
-          const usersList = await fetchUsers(zone.toString());
-          setAdminState((prev) => ({ ...prev, users: usersList }));
-        }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error while decoding JWT or dispatching actions:', error);
+    if (isAdmin) {
+      if (cityId !== undefined) {
+        const usersList = await fetchUsers(cityId.id.toString());
+        setAdminState((prev) => ({ ...prev, users: usersList }));
+      } else {
+        const usersList = await fetchUsers(null);
+        setAdminState((prev) => ({ ...prev, users: usersList }));
+      }
+    } else if (me?.zone) {
+      const usersList = await fetchUsers(me.zone.toString());
+      setAdminState((prev) => ({ ...prev, users: usersList }));
     }
     setIsOpenSlide(false);
   };
@@ -189,9 +173,7 @@ export default function SlideEditUser({
                   {!isAdmin &&
                     roles
                       .filter(
-                        (filteredRole) =>
-                          filteredRole.id !==
-                          '53de6ec2-6d70-48c8-8532-61f96133f139'
+                        (filteredRole) => filteredRole.name !== 'Administrator'
                       )
                       .map((role) => (
                         <option key={role.id} value={role.id}>

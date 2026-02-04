@@ -39,7 +39,17 @@ export const fetchAdminOrganisms = async ({
 export const fetchUsers = async (zone: string | null) => {
   const { data } = await axiosInstance.get<{ data: DirectusUser[] }>('/users', {
     params: {
-      fields: ['*'].join(','),
+      fields: [
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'role.id',
+        'role.name',
+        'zone',
+        'last_access',
+        'status',
+      ].join(','),
       filter: {
         zone,
       },
