@@ -10,6 +10,8 @@ import Button from './Button';
 import BackColor from '../../Container/BackColor';
 import { useAppState } from '../../../hooks/appState';
 
+const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 const navigation = [
   {
     name: 'Edition',
@@ -58,7 +60,7 @@ const navigation = [
   },
   {
     name: 'Back-end',
-    href: 'https://api.watizat.app',
+    href: BACKEND_URL,
     descript: 'Back-end (Directus)',
     target: '_blank',
     icon: CircleStackIcon,

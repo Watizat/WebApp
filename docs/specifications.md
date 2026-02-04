@@ -176,3 +176,9 @@ Rien à faire par ici
 *Newsletter* : Non
 
 *Réseaux sociaux* : Forte présence et forte communauté (Facebook, Instagram, Twitter)
+
+### Variables d'environnement (frontend)
+
+Le frontend necessite la variable suivante pour fonctionner :
+
+- `VITE_API_URL` : URL de l'API Directus (exemple dans `.env.example`).

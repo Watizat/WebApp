@@ -21,6 +21,8 @@ import Desktop from './SideDesktop';
 import Widescreen from './SideWidescreen';
 import AppVersions from '../../Modals/AppVersions';
 
+const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 interface Props {
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -89,7 +91,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
       },
       {
         name: 'Back-end',
-        href: 'https://api.watizat.app',
+        href: BACKEND_URL,
         target: '_blank',
         icon: CircleStackIcon,
         active: true,
