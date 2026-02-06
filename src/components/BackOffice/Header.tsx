@@ -21,9 +21,9 @@ interface Props {
 }
 
 export default function Header({ setSidebarOpen }: Props) {
-  const [select, setSelect] = useState(localStorage.getItem('city') || '');
+  const [select, setSelect] = useState('');
   const { adminState, userState, setAdminState, setUserState } = useAppState();
-  const { isAdmin } = userState;
+  const { isAdmin, city } = userState;
   const { zones } = adminState;
   const [me, setMe] = useState<DirectusUser | null>(null);
   const { pathname } = useLocation();
@@ -33,6 +33,10 @@ export default function Header({ setSidebarOpen }: Props) {
     setSelect(event.target.value);
     setUserState((prev) => ({ ...prev, city: event.target.value }));
   };
+
+  useEffect(() => {
+    setSelect(city || localStorage.getItem('city') || '');
+  }, [city]);
 
   useEffect(() => {
     async function getUserInfos() {
@@ -130,6 +134,9 @@ export default function Header({ setSidebarOpen }: Props) {
             <Listbox
               value={select}
               onChange={(value) => {
+                if (!isAdmin) {
+                  return;
+                }
                 handleChangeCity({
                   target: { value },
                 } as ChangeEvent<HTMLSelectElement>);
@@ -137,7 +144,10 @@ export default function Header({ setSidebarOpen }: Props) {
               disabled={!isAdmin}
             >
               <div className="relative">
-                <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 ring-1 ring-inset ring-gray-200/80 sm:text-sm sm:leading-6 disabled:cursor-not-allowed">
+                <Listbox.Button
+                  disabled={!isAdmin}
+                  className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 ring-1 ring-inset ring-gray-200/80 sm:text-sm sm:leading-6 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                >
                   <span className="block truncate">
                     {select || 'Selectionner une ville'}
                   </span>

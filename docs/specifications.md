@@ -1,232 +1,184 @@
-# Documentation developpeur - WebApp Watizat
-
-## 0) Organisation de la documentation
-
-Documentation fonctionnelle par module dans `docs/modules/` :
-
-- `docs/modules/front-office.md`
-- `docs/modules/back-office-edition.md`
-- `docs/modules/back-office-users.md`
-
-Documentation technique transversale dans `docs/technical/` :
-
-- `docs/technical/auth.md`
-- `docs/technical/zones.md`
-- `docs/technical/api.md`
-- `docs/technical/vigilance.md`
-
-Parcours recommandes selon le besoin:
-
-- **Onboarding nouveau dev** : `docs/guides/onboarding.md`
-- **Reference technique** : ce fichier + `docs/modules/*.md` + `docs/technical/*.md`
-
-Utiliser ce fichier comme **vue globale**, et les autres dossiers comme references de travail pour les evolutions.
+---
 
 ---
 
-## 1) Objectif du projet
+# Cahier des charges
 
-Cette application contient deux espaces :
+## I- Votre structure
 
-- **Front office** : consultation publique du guide (recherche par zone + categorie, vue resultats, fiche organisme).
-- **Back office** : administration du guide (edition des organismes, gestion des utilisateurs, profil).
+### Présentez votre entreprise : ( son histoire, sa taille (CA et nombre de salariés), ses activités principales, ses produits et services vendus, Votre positionnement concurrentiel : qui sont vos trois principaux concurrents ? quel est l’élément différenciant de votre activité/de votre communication ? quelle est votre positionnement de gamme (haut/bas/milieu) ou votre niveau de service (sur mesure/préfabriqué) ? )
 
-Le frontend (ce repo) depend d'un backend Directus.
+Il y a une association qui se nomme Watizat (une des assos dans laquelle je suis bénevole)
 
-- Repo backend : `https://github.com/Watizat/directus`
-- Sans ce backend, la webapp ne peut pas fonctionner correctement (auth, donnees, edition, zones, roles).
+Son objet est d'éditer un guide à destination des personnes exilées récapitulant l'ensemble de services (publics, privés, associatifs) accessible dans une ville donnée (logement, distribution de nourriture, asso LGBT pour réfugié·e·s, asso de lutte contre les violences basées sur le genre, etc).
 
----
+Actuellement le guide est edité par trois groupes locaux, dans trois villes : Paris, Lyon, Toulouse (bientôt Marseille ?)
 
-## 2) Stack et architecture technique
+Le guide est édité en plusieurs langues : français, anglais, espagnol, dari, pachtou, arabe (langues différentes selon les villes)
 
-- **Framework** : React 18 + TypeScript + Vite
-- **Styling** : Tailwind CSS
-- **Routing** : `react-router-dom`
-- **HTTP** : `axios` (instance centralisee)
-- **Formulaires** : `react-hook-form`
-- **Carte** : Leaflet / React-Leaflet
-- **Auth** : JWT (login + refresh token)
+Le guide est mis à jour régulièrement : Paris (tous les mois), Lyon et Toulouse (tous les deux mois)
 
-Entree de l'app : `src/main.tsx`  
-Router principal : `src/router.tsx`  
-Etat global : `src/context/AppStateContext.tsx`  
-Contexte back-office (UI locale) : `src/context/BackOfficeContext.tsx`
+Exemple de guide : <https://watizat.org/wp-content/uploads/2023/05/watizat_toulouse_2305-FR-NUMERIQUE-230501-16h35.pdf>
 
----
+## II- Votre projet
 
-## 3) Comment le site est construit
+### PLANNING PRÉVISIONNEL Indiquez, ici, si vous avez des attentes particulières pour la mise en ligne de votre site. Précisez également si vous attendez une mise en ligne en plusieurs phases
 
-### Arborescence logique
+Livrable à rendre pour la fin de l'apothéose
 
-- `src/components/App/FrontOffice.tsx` : shell front (header/footer + preload categories/zones/jours)
-- `src/components/App/BackOffice.tsx` : shell back (auth guard, chargement roles/zones, layout sidebar/header)
-- `src/components/FrontOffice/*` : pages publiques
-- `src/components/BackOffice/*` : pages admin
-- `src/api/*` : appels API (Directus + geocodage adresse)
-- `src/utils/axios.ts` : gestion auth, injection bearer, refresh token
+Version minimale à rendre pour l3
 
-### Routing (haut niveau)
+### COMITÉ DE PILOTAGE : Indiquez ici quels seront les processus de validation sein de votre entreprise et qui se chargera des différentes missions suivantes : valider les phases de choix (graphisme, ergonomie, contenus), valider le respect du cahier des charges, veiller au respect des délais, fournir les contenus de base (textes, plaquettes, logos, images, photos)
 
-- Front :
-  - `/` (home / recherche)
-  - `/resultats`
-  - `/organisme/:slug`
-  - `/login`, `/account-request`, `/forgotten-password`, `/recover-password`
-  - pages statiques (`/mentions-legales`, `/guides-papier`)
-- Back :
-  - `/admin/dashboard`
-  - `/admin/edition`
-  - `/admin/users`
-  - `/admin/profil`
+Pilotage uniquement en interne (équipe stagiaires o'clock) avec lien siège Watizat (de loin)
 
-Note : les entrees `Traduction`, `Print`, `Actualisation` sont visibles dans certains menus mais les routes ne sont pas implementees dans ce repo (fonctionnalites prevues/non actives).
+### Vos attentes ? : faire connaître l’entreprise, vendre vos produits sur internet, donner à vos clients des conseils sur vos produits ou services, générer des contacts de nouveaux prospects
 
----
+Donner de l'information avtuellement seulement en version papier à des personnes exilées sur mobile et desktop via un service web, et créer une base de données permettant aussi d'alimenter une application mobile native
 
-## 4) Front office : fonctionnement
+### Objectifs du site Indiquez les principales vocations du site : site de vente, site d’information, support de communication, support de fidélisation
 
-### Parcours principal
+Permettre l'accès aus données sur une carte et/ou via un système de recherche, de filtre les types de services par pleins de filtres.
 
-1. L'utilisateur choisit une **zone** + une **categorie** sur la home.
-2. L'app navigue vers `/resultats?city=...&category=...`.
-3. `Resultats.tsx` :
-   - recupere la position de la zone (`fetchCityPosition`)
-   - recupere les organismes de la zone (`fetchOrganisms`)
-   - alimente le state global (`organismState`)
-4. Clic sur un organisme -> `/organisme/:slug` puis chargement des details (`fetchOrganism`).
+L'API servira à terme aussi bien au site desktop et mobile, qu'à l'application mobile en cours de refonte
 
-### Donnees front importantes
+### À qui s’adresse le site – Les cibles Notez ici le nombre de cibles différentes et les hiérarchiser. Pour chacune, merci de préciser
 
-- `organismState.categories` : categories de services
-- `organismState.organisms` / `filteredOrganisms` : resultats de recherche
-- `organismState.organism` : organisme affiche dans la fiche
-- `adminState.zones` : liste des zones (aussi utilisee dans le front pour les selects)
+Personnes exilées, et travailleu·r·se·s socia·ux·les
 
----
+### Langues Préciser ici en quelles versions linguistiques le site sera disponible. Si le site est en plusieurs langues, s’agira-t-il de versions identiques ou de versions adaptées. Dans ce cas précisez. Indiquez également qui se chargera des éventuels besoins en traduction
 
-## 5) Back office : fonctionnement
+Gestion de plusieurs langues (anglais, espagnol, patchou, dari, arabe, etc) (v2)
 
-### Garde d'acces
+Peut-être à faire dans un second temps, hors apothèose ?
 
-`BackOffice.tsx` :
+### Développement Spécifiez si dans le site, il faut des éléments qui font appel à de la programmation et à des bases de données
 
-- verifie la session locale (`localStorage.user`)
-- appelle `/users/me`
-- bloque/redirige vers `/login` si non authentifie
-- refuse l'acces aux roles `NewUser` / `UserToDelete`
+Beaucoup de travail sur le côté data, gestion et modification des données
 
-### Modules actifs
+### STATISTIQUES Avez-vous des attentes particulières en matière de statistiques de fréquentation ?
 
-- **Dashboard** : point d'entree admin avec tuiles de navigation
-- **Edition** : liste d'organismes + panneau detail + creation/edition/archivage
-- **Utilisateurs** : liste et edition des comptes
-- **Profil** : consultation/edition de son profil
+Peut-être quelque question (V2) sur les catégories les plus utilisées
 
-### Specificites UX
+### Arborescence – Plan du site Proposez une arborescence pour montrer l’architecture du site telle que vous l’imaginez. Celle-ci sera présentée sous forme schématique avec les rubriques principales, les sous rubriques et les liens qui les unissent
 
-- Le back office est volontairement bloque sur mobile (`NoMobile.tsx`).
-- Le header back-office permet de changer de zone (uniquement pour certains roles utilisateur.ice.s).
-
----
-
-## 6) Roles utilisateurs et droits
-
-Les roles sont recuperes depuis Directus (`/roles`, `/users/me`).  
-Le code manipule a la fois des **noms de role** (`Administrator`, `RefLocal`, `Edition`, etc.) et des **UUID** (legacy dans certains composants).
-
-### Roles metiers observes
-
-- `Administrator`
-- `RefLocal`
-- `Edition`
-- `NewUser`
-- `UserToDelete`
-
-### Differences de droits (dans le frontend)
-
-- **Administrator**
-  - acces complet au back-office
-  - acces a la gestion utilisateur
-  - peut changer la zone active dans le header
-  - voit le lien "Back-end"
-- **RefLocal**
-  - acces back-office et gestion utilisateur
-  - peut changer la zone active dans le header
-  - pas d'acces "Back-end" dans la navigation filtree
-- **Edition**
-  - acces edition/dashboards limites
-  - pas d'acces au module utilisateurs
-  - pas de changement global de zone (zone figee selon son rattachement)
-- **NewUser**
-  - acces back-office refuse (deconnexion + retour login)
-  - user en attente de validation par un.e admin ou refLocal
-- **UserToDelete**
-  - acces back-office refuse (deconnexion + retour login)
-  - user en attente de suppression definitive par un.e admin ou refLocal
-
----
-
-## 7) Les zones : ce que c'est et ce que ca change
-
-Une **zone** represente une antenne / territoire (ex: ville).
-
-### Ou elles sont utilisees
-
-- Front office :
-  - choix de zone pour la recherche
-  - filtrage des organismes par `zone_id.name`
-  - centrage carte selon la zone
-- Back office :
-  - filtrage des organismes affiches dans Edition selon la zone active
-  - filtrage des utilisateurs selon la zone
-  - affectation d'une zone lors de la creation/edition d'un user ou d'un organisme
-
-### Impact concret
-
-- Changer de zone change immediatement le perimetre des donnees affichees.
-- Les roles non-admin sont limites a leur zone de rattachement.
-- La zone selectionnee est persistee en local (`localStorage.city`) pour garder le contexte entre pages.
-
----
-
-## 8) Modele de donnees (resume)
-
-Principales collections Directus manipulees :
-
-- `organisme` (+ `organisme_translation`)
-- `service` (+ `service_translation`)
-- `contact`
-- `schedule`
-- `zone`
-- `categorie` (+ traductions)
-- `users`
-- `roles`
-
-Relations importantes :
-
-- un organisme appartient a une zone (`zone_id`)
-- un organisme contient des services, contacts, horaires
-- un utilisateur est rattache a une zone (`user.zone`) et a un role (`user.role`)
-
----
-
-## 9) Authentification et session
-
-- Login via `/auth/login`, token stocke dans `localStorage.user`.
-- Intercepteur Axios :
-  - ajoute le bearer token aux requetes
-  - rafraichit automatiquement via `/auth/refresh` si expire
-  - deconnecte si refresh invalide
-- Deconnexion automatique par inactivite (`InactivityDetector`) apres timeout.
-
----
-
-## 10) Demarrage local
-
-```bash
-npm install
-npm run dev
+```
+Accueil 
+├── Résultat (carte + liste)
+│   ├── Fiche de détail
+│   └── Export fil d'orientation
+├── Page de connexion
+│   ├── Accueil espace admin   
+|   │   ├── Espace modification des données 
+|   │   ├── Gestion des utilisateurs
+|   │   ├── Espace graphiste (v3)
+|   │   ├── Espace actualisation (v3) 
+|   │   └── Espace traduction (v2)
+│   ├── Demande de création de compte
+│   └── Mot de passe oublié
+│   │   └── Réinitialisation de mot de passe
 ```
 
-Puis ouvrir `http://localhost:5173`.
+### Technologies utilisées
+
+- Front : Typescript · React + (framework CSS à déterminer)
+
+- Back ! Directus
+
+- Api externes : gestion des données de transport (soit agrégées via un sevrice spécifique, soit à l'échelle de chaque ville)
+
+### Fonctionnalités attendues
+
+#### **<u>Fonctionnalités à dev front :</u>**
+
+##### **Page Accueil**
+
+- API CRUD (à première vu Directus peut le gérer avec les éléments de la BDD) ***<u>v1</u>***
+
+- Filtre par ville ***<u>v1</u>***
+
+- Filtre par catégorie ***<u>v1</u>***
+
+- Switch de langue ***<u>v2</u>***
+
+- Gestion des cookies (comment qu’on fait??) ***<u>v1</u>***
+
+- Fil d'orientation (panier/favoris) ***<u>v1</u>***
+
+###### **Page Résultat de recherche**
+
+- filtre (catégorie, service..) ***<u>v1</u>***
+
+- affichage des résultats ***<u>v1</u>***
+
+- Maps ***<u>v1</u>***
+
+##### **Fiche Organisme/Filiale :**
+
+- Affichage des différentes infos ***<u>v1</u>***
+
+- Affichage des données de transport **v1 (sauf si difficulté avec API et besoin de construire quelque chose de spécifique)**
+
+#### **<u>Fonctionnalités à dev back :</u>**
+
+- affichage des services : différents états, par qui, quand (cf maquette) ***<u>v1</u>***
+
+- accès suivant les rôles ***<u>v1</u>***
+
+#### Fonctionnalités des prochaines versions
+
+##### v1.1
+
+- Fil d'orientation social
+
+- Fonctions d'export du fil
+
+- Sidebar plus d'infos
+
+##### v.2
+
+- Espace traduction
+
+- Gestion des langues
+
+##### v.3
+
+- Espace graphiste
+
+### Hébergement Indiquez, ici, si vous souhaitez que l’agence vous propose une prestation d’hébergement et éventuellement de quel type d’hébergement il s’agira
+
+Hébergement déjà assuré en interne par l’association Watizat sur son propre serveur
+
+Rien à faire de ce côté là
+
+### Référencement Indiquez, ici, si vous souhaitez que l’agence prenne en charge le référencement de votre site auprès des moteurs de recherche. Précisez quels sont vos objectifs en la matière, si vous attendez une prestation de suivi et de quelle nature. Indiquez également si possible sur quels axes vus souhaitez vous positionner
+
+Peu important pour ce site pour le moment
+
+En effet, le guide est déjà extrêmement connu, et le site de Watizat pointera – au moins pour le moment – principalement vers le site actuel
+
+Ce site est ubn outil de l'association, et non sa vitrine
+
+### Dépôt du nom de domaine et adresses mail Indiquez, ici, si vous souhaitez que l’agence se charge de déposer un ou plusieurs noms de domaine. Si vous êtes déjà propriétaire d’un nom de domaine. Précisez si l’agence doit se charger du transfert du nom de domaine auprès de l’hébergeur du site
+
+Rien à faire par ici
+
+### Vos outils de communication
+
+*Logo* : Oui et sous format numérique
+
+*Identité visuelle* : Oui
+
+*Site internet* : Oui (<https://watizat.org>)
+
+*Blog* : Non
+
+*Newsletter* : Non
+
+*Réseaux sociaux* : Forte présence et forte communauté (Facebook, Instagram, Twitter)
+
+### Variables d'environnement (frontend)
+
+Le frontend necessite la variable suivante pour fonctionner :
+
+- `VITE_API_URL` : URL de l'API Directus (exemple dans `.env.example`).

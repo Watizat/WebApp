@@ -21,10 +21,11 @@ import MentionsLegales from './components/FrontOffice/StaticsPages/MentionsLegal
 import Organisme from './components/FrontOffice/Organisme/Organisme';
 import Resultats from './components/FrontOffice/Resultats/Resultats';
 import GuidesPapier from './components/FrontOffice/StaticsPages/GuidesPapier/GuidesPapier';
+import RouteError from './components/Errors/RouteError';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<InactivityDetector />}>
+    <Route path="/" element={<InactivityDetector />} errorElement={<RouteError />}>
       {/* Front-office */}
       <Route path="/" element={<FrontApp />}>
         <Route index element={<Home />} />
@@ -40,7 +41,7 @@ const router = createBrowserRouter(
       <Route path="/organisme/:slug" element={<Organisme />} />
 
       {/* Back-office */}
-      <Route path="/admin" element={<BackApp />} errorElement={<FrontApp />}>
+      <Route path="/admin" element={<BackApp />}>
         <Route path="/admin/dashboard" element={<Dashboard />} />
         <Route path="/admin/edition" element={<Edition />} />
         <Route path="/admin/users" element={<Users />} />
