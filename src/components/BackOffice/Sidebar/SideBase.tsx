@@ -13,7 +13,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { useAppState } from '../../../hooks/appState';
-import { logout as logoutRequest } from '../../../api/user';
+import { clearMeCache, logout as logoutRequest } from '../../../api/user';
+import { clearZonesCache } from '../../../api/admin';
 import { removeUserDataFromLocalStorage } from '../../../utils/user';
 
 import Tablet from './SideTablet';
@@ -30,7 +31,7 @@ interface Props {
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
   const [isOpenModalVersions, setIsOpenModalVersions] = useState(false);
-  const { userState, setUserState } = useAppState();
+  const { userState, resetAppState } = useAppState();
   const { roleName } = userState;
 
   const memoizedNavigation = useMemo(() => {
@@ -115,16 +116,12 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
 
   const memoizedActions = useMemo(() => {
     const handleLogout = () => {
+      clearMeCache();
+      clearZonesCache();
       logoutRequest().finally(() => {
         removeUserDataFromLocalStorage();
-        setUserState(prev => ({
-          ...prev,
-          isLogged: false,
-          isActive: false,
-          lastActionDate: null,
-          token: null,
-          roleName: null,
-        }));
+        localStorage.removeItem('city');
+        resetAppState();
       });
     };
 
@@ -151,7 +148,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: Props) {
         onclick: handleLogout,
       },
     ];
-  }, [setSidebarOpen, setUserState]);
+  }, [setSidebarOpen, resetAppState]);
 
   const filteredNavigation = memoizedNavigation.filter(item => allowedNav.has(item.name));
 

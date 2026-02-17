@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { Categorie, Days, Organism, Role, Zone } from '../@types/organism';
 import { DirectusUser, UserState } from '../@types/user';
 import { getUserDataFromLocalStorage } from '../utils/user';
@@ -48,6 +48,7 @@ interface AppStateContextValue {
   setOrganismState: React.Dispatch<React.SetStateAction<OrganismsState>>;
   userState: UserState;
   setUserState: React.Dispatch<React.SetStateAction<UserState>>;
+  resetAppState: () => void;
 }
 
 const AppStateContext = createContext<AppStateContextValue | undefined>(
@@ -89,7 +90,7 @@ const initialOrganismsState: OrganismsState = {
 
 const timeout = 5 * 1000 * 60;
 
-const initialUserState: UserState = {
+const createInitialUserState = (): UserState => ({
   loginCredentials: {
     email: '',
     password: '',
@@ -108,7 +109,7 @@ const initialUserState: UserState = {
   isAdmin: false,
   roleName: null,
   city: localStorage.getItem('city') || null,
-};
+});
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [adminState, setAdminState] = useState<AdminState>(initialAdminState);
@@ -119,7 +120,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [organismState, setOrganismState] = useState<OrganismsState>(
     initialOrganismsState
   );
-  const [userState, setUserState] = useState<UserState>(initialUserState);
+  const [userState, setUserState] = useState<UserState>(createInitialUserState);
+  const resetAppState = useCallback(() => {
+    setAdminState(initialAdminState);
+    setCrudState(initialCrudState);
+    setHamburgerState(initialHamburgerState);
+    setOrganismState(initialOrganismsState);
+    setUserState(createInitialUserState());
+  }, []);
 
   const contextValue = useMemo<AppStateContextValue>(() => {
     return {
@@ -133,6 +141,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setOrganismState,
       userState,
       setUserState,
+      resetAppState,
     };
   }, [
     adminState,
@@ -145,6 +154,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setOrganismState,
     userState,
     setUserState,
+    resetAppState,
   ]);
 
   return (

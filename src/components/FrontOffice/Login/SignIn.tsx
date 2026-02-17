@@ -28,6 +28,7 @@ export default function SignIn() {
     setUserState(prev => ({ ...prev, isLoading: true }));
     try {
       const { token, session } = await loginRequest({ email, password });
+
       localStorage.setItem(
         'user',
         JSON.stringify({
@@ -54,7 +55,22 @@ export default function SignIn() {
         throw new Error('Failed to fetch user data');
       }
       const roleName = typeof meData.role === 'string' ? meData.role : meData.role?.name;
-      if (roleName === 'NewUser' || meData.status === 'unverified') {
+      if (roleName === 'UserToDelete') {
+        await logoutRequest();
+        removeUserDataFromLocalStorage();
+        setUserState(prev => ({
+          ...prev,
+          isLogged: false,
+          isActive: false,
+          lastActionDate: null,
+          token: null,
+          roleName: null,
+          error: 'Votre compte est en cours de suppression.',
+          isLoading: false,
+        }));
+        return;
+      }
+      if (meData.status === 'unverified') {
         await logoutRequest();
         removeUserDataFromLocalStorage();
         setUserState(prev => ({

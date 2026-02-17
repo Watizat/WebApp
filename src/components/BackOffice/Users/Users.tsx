@@ -14,7 +14,7 @@ export default function Users() {
       const cityLocal = localStorage.getItem('city');
 
       const cityId = cityLocal ? zones.find(zone => zone.name === cityLocal) : zones.find(zone => zone.name === city);
-      const meData = await fetchMe();
+      const meData = await fetchMe({ force: true });
       if (!meData) {
         // Optionally handle the error or set fallback state here
         setUserState(prev => ({ ...prev, isAdmin: false, roleName: null }));
