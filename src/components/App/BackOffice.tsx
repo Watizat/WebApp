@@ -13,7 +13,7 @@ import Header from '../BackOffice/Header';
 import BackOfficeContext from '../../context/BackOfficeContext';
 
 export default function App() {
-  const { organismState, setAdminState, setOrganismState, setUserState } = useAppState();
+  const { organismState, setAdminState, setOrganismState, setUserState, userState } = useAppState();
   const user = getUserDataFromLocalStorage();
   const { pathname } = useLocation();
   const { langue } = organismState;
@@ -54,7 +54,7 @@ export default function App() {
     async function check() {
       setIsLoading(true);
       try {
-        const meData = await fetchMe();
+        const [meData, zones] = await Promise.all([fetchMe({ force: true }), fetchZones({ force: true })]);
 
         if (!meData) {
           navigate('/login');
@@ -62,7 +62,7 @@ export default function App() {
         }
         const roleName = typeof meData.role === 'string' ? meData.role : meData.role?.name;
 
-        if (roleName && ['UserToDelete', 'NewUser'].includes(roleName)) {
+        if (roleName === 'UserToDelete') {
           removeUserDataFromLocalStorage();
           setUserState(prev => ({
             ...prev,
@@ -72,16 +72,26 @@ export default function App() {
             token: null,
             roleName: null,
             isAdmin: false,
+            error: 'Votre compte est en cours de suppression.',
           }));
           navigate('/login');
           return;
         }
 
         const isAdminRole = roleName === 'Administrator' || roleName === 'RefLocal';
+        const zoneName = zones.find(zone => zone.id === meData.zone)?.name || null;
+        const hasStoredCity = !!localStorage.getItem('city');
+
+        const nextCity = !isAdminRole ? zoneName : hasStoredCity ? localStorage.getItem('city') : zoneName;
+        if (nextCity) {
+          localStorage.setItem('city', nextCity);
+        }
+
         setUserState(prev => ({
           ...prev,
           isAdmin: isAdminRole,
           roleName: roleName || null,
+          city: nextCity,
         }));
       } catch (error) {
         // If auth check fails, return to login
@@ -109,17 +119,23 @@ export default function App() {
       <div className='hidden md:block'>
         {!isLoading && (
           <>
-            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-            <div
-              className={` flex flex-col flex-1  lg:pl-20 ${pathname !== '/admin/dashboard' && '2xl:pl-72 '} ${
-                pathname === '/admin/dashboard' || pathname === '/admin/profil'
-                  ? 'h-full min-h-full'
-                  : 'h-max min-h-max'
-              }`}
-            >
-              <Header setSidebarOpen={setSidebarOpen} />
+            {userState.roleName === 'NewUser' ? (
               <Outlet />
-            </div>
+            ) : (
+              <>
+                <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+                <div
+                  className={` flex flex-col flex-1  lg:pl-20 ${pathname !== '/admin/dashboard' && '2xl:pl-72 '} ${
+                    pathname === '/admin/dashboard' || pathname === '/admin/profil'
+                      ? 'h-full min-h-full'
+                      : 'h-max min-h-max'
+                  }`}
+                >
+                  <Header setSidebarOpen={setSidebarOpen} />
+                  <Outlet />
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

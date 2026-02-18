@@ -78,6 +78,18 @@ export default function Dashboard() {
   };
   const allowed = new Set(allowedByRole[roleName || ''] || []);
 
+  if (roleName === 'NewUser') {
+    return (
+      <BackColor>
+        <main className='flex flex-col items-center justify-center flex-1 w-full h-full'>
+          <p className='text-xl font-semibold leading-8 text-center text-slate-700'>
+            Utilisateur Simple connecté. Accès aux modules à déterminer
+          </p>
+        </main>
+      </BackColor>
+    );
+  }
+
   return (
     <BackColor>
       <main className='flex flex-col items-center justify-center flex-1 w-full h-full gap-y-10'>

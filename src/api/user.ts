@@ -1,18 +1,23 @@
+import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 import { Inputs } from '../@types/formInputs';
 import { AuthResponse, DirectusUser, UserSession, UserState } from '../@types/user';
 import { axiosInstance } from '../utils/axios';
 import { getUserDataFromLocalStorage } from '../utils/user';
+const API_URL = import.meta.env.VITE_API_URL;
 
 let meCache: DirectusUser | null = null;
 let mePromise: Promise<DirectusUser | null> | null = null;
+let meCacheVersion = 0;
 
 export const clearMeCache = () => {
+  meCacheVersion += 1;
   meCache = null;
   mePromise = null;
 };
 
 export const fetchMe = async (options?: { force?: boolean }) => {
+  const requestVersion = meCacheVersion;
   if (!options?.force && meCache) {
     return meCache;
   }
@@ -23,13 +28,20 @@ export const fetchMe = async (options?: { force?: boolean }) => {
     .get('/users/me', {
       params: {
         fields: '*,role.name',
+        ...(options?.force ? { _cb: Date.now() } : {}),
       },
     })
     .then(({ data }) => {
+      if (requestVersion !== meCacheVersion) {
+        return null;
+      }
       meCache = data.data;
       return meCache;
     })
     .finally(() => {
+      if (requestVersion === meCacheVersion) {
+        mePromise = null;
+      }
       mePromise = null;
     });
   return mePromise;
@@ -62,9 +74,28 @@ export const askPassword = async (email: string) => {
 };
 
 export const registerUser = async (formData: Inputs) => {
-  await axiosInstance.post('/users', {
-    ...formData,
-  });
+  const payload = {
+    first_name: formData.first_name,
+    last_name: formData.last_name,
+    email: formData.email,
+    password: formData.password,
+    ...(formData.zone ? { zone: formData.zone } : {}),
+  };
+
+  try {
+    await axios.post(`${API_URL}/users`, payload);
+  } catch (error) {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 403 &&
+      JSON.stringify(error.response?.data || {}).includes('"zone"')
+    ) {
+      const { zone, ...payloadWithoutZone } = payload;
+      await axios.post(`${API_URL}/users`, payloadWithoutZone);
+      return;
+    }
+    throw error;
+  }
 };
 
 export const editUser = async (formData: Inputs) => {
