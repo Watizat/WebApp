@@ -54,10 +54,7 @@ export default function App() {
     async function check() {
       setIsLoading(true);
       try {
-        const [meData, zones] = await Promise.all([
-          fetchMe({ force: true }),
-          fetchZones({ force: true }),
-        ]);
+        const [meData, zones] = await Promise.all([fetchMe({ force: true }), fetchZones({ force: true })]);
 
         if (!meData) {
           navigate('/login');
@@ -120,11 +117,7 @@ export default function App() {
         <NoMobile />
       </div>
       <div className='hidden md:block'>
-        {isLoading ? (
-          <div className='flex items-center justify-center w-full min-h-screen'>
-            <p className='text-base font-medium text-slate-600'>Chargement...</p>
-          </div>
-        ) : (
+        {!isLoading && (
           <>
             {userState.roleName === 'NewUser' ? (
               <Outlet />

@@ -51,9 +51,7 @@ interface AppStateContextValue {
   resetAppState: () => void;
 }
 
-const AppStateContext = createContext<AppStateContextValue | undefined>(
-  undefined
-);
+const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
 const initialAdminState: AdminState = {
   organisms: [],
@@ -114,12 +112,8 @@ const createInitialUserState = (): UserState => ({
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [adminState, setAdminState] = useState<AdminState>(initialAdminState);
   const [crudState, setCrudState] = useState<CrudState>(initialCrudState);
-  const [hamburgerState, setHamburgerState] = useState<HamburgerState>(
-    initialHamburgerState
-  );
-  const [organismState, setOrganismState] = useState<OrganismsState>(
-    initialOrganismsState
-  );
+  const [hamburgerState, setHamburgerState] = useState<HamburgerState>(initialHamburgerState);
+  const [organismState, setOrganismState] = useState<OrganismsState>(initialOrganismsState);
   const [userState, setUserState] = useState<UserState>(createInitialUserState);
   const resetAppState = useCallback(() => {
     setAdminState(initialAdminState);
@@ -157,11 +151,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     resetAppState,
   ]);
 
-  return (
-    <AppStateContext.Provider value={contextValue}>
-      {children}
-    </AppStateContext.Provider>
-  );
+  return <AppStateContext.Provider value={contextValue}>{children}</AppStateContext.Provider>;
 }
 
 export const useAppStateContext = () => {

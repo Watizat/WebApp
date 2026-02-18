@@ -17,9 +17,9 @@ interface Props {
 }
 
 export default function Header({ setSidebarOpen }: Props) {
-  const [select, setSelect] = useState('');
+  const [select, setSelect] = useState(localStorage.getItem('city') || '');
   const { adminState, userState, setAdminState, setUserState, resetAppState } = useAppState();
-  const { isAdmin, city } = userState;
+  const { isAdmin } = userState;
   const { zones } = adminState;
   const [me, setMe] = useState<DirectusUser | null>(null);
   const { pathname } = useLocation();
@@ -29,10 +29,6 @@ export default function Header({ setSidebarOpen }: Props) {
     setSelect(event.target.value);
     setUserState(prev => ({ ...prev, city: event.target.value }));
   };
-
-  useEffect(() => {
-    setSelect(city || localStorage.getItem('city') || '');
-  }, [city]);
 
   useEffect(() => {
     async function getUserInfos() {
