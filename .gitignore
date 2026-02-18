@@ -28,3 +28,4 @@ dist-ssr
 *.sw?
 yarn.lock
 .gitignore
+.env
