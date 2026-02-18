@@ -5,6 +5,7 @@ import { AuthResponse, DirectusUser, UserSession, UserState } from '../@types/us
 import { axiosInstance } from '../utils/axios';
 import { getUserDataFromLocalStorage } from '../utils/user';
 const API_URL = import.meta.env.VITE_API_URL;
+const APP_URL = import.meta.env.VITE_APP_URL;
 
 let meCache: DirectusUser | null = null;
 let mePromise: Promise<DirectusUser | null> | null = null;
@@ -66,9 +67,12 @@ export const logout = async () => {
 };
 
 export const askPassword = async (email: string) => {
+  const fallbackAppUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const resetUrlBase = APP_URL || fallbackAppUrl;
+
   await axiosInstance.post('/auth/password/request', {
     email,
-    reset_url: 'https://guide.watizat.app/recover-password',
+    reset_url: `${resetUrlBase}/recover-password`,
   });
 };
 

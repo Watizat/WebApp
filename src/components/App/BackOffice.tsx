@@ -120,7 +120,11 @@ export default function App() {
         <NoMobile />
       </div>
       <div className='hidden md:block'>
-        {!isLoading && (
+        {isLoading ? (
+          <div className='flex items-center justify-center w-full min-h-screen'>
+            <p className='text-base font-medium text-slate-600'>Chargement...</p>
+          </div>
+        ) : (
           <>
             {userState.roleName === 'NewUser' ? (
               <Outlet />
