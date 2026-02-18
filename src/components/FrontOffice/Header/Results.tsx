@@ -5,6 +5,7 @@ import {
 } from '@heroicons/react/20/solid';
 
 import logo from '../../../assets/logo-color.svg';
+import ThemeToggle from '../../shared/ThemeToggle';
 
 interface Props {
   setIsOpenSlide: React.Dispatch<React.SetStateAction<boolean>>;
@@ -13,7 +14,7 @@ interface Props {
 export default function Header({ setIsOpenSlide }: Props) {
   return (
     <section>
-      <div className="sticky top-0 z-40 flex items-center h-16 px-8 bg-white border-b border-gray-200 shadow-sm shrink-0 gap-x-4 sm:gap-x-8 lg:px-10">
+      <div className="sticky top-0 z-40 flex items-center h-16 px-8 bg-white border-b border-gray-200 shadow-sm shrink-0 gap-x-4 sm:gap-x-8 lg:px-10 dark:bg-gray-900 dark:border-gray-700">
         <div className="flex self-stretch justify-between flex-1 ">
           <div className="flex items-center justify-start w-full gap-x-20 lg:w-1/2 md:w-7/12">
             <Link to="/" className="flex items-centershrink-0">
@@ -51,9 +52,10 @@ export default function Header({ setIsOpenSlide }: Props) {
             />
           </form> */}
           <div className="flex items-center gap-x-4 lg:gap-x-6">
+            <ThemeToggle />
             {/* Separator */}
             <div
-              className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"
+              className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200 dark:bg-gray-700"
               aria-hidden="true"
             />
 
@@ -61,7 +63,7 @@ export default function Header({ setIsOpenSlide }: Props) {
             <div className="flex justify-end flex-1">
               <Link
                 to="/login"
-                className="hidden text-sm font-semibold leading-6 text-gray-900 md:flex"
+                className="hidden text-sm font-semibold leading-6 text-gray-900 md:flex dark:text-gray-100"
               >
                 Membres Watizat&nbsp;&nbsp;
                 <span aria-hidden="true">&rarr;</span>

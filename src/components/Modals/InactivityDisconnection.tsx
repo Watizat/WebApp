@@ -13,7 +13,8 @@ interface Props {
 }
 
 function ModalInactivityDetector({ setIsOpenModal, setAnswerCount }: Props) {
-  const { setUserState } = useAppState();
+  const { setUserState, themeMode } = useAppState();
+  const isDark = themeMode === 'dark';
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsOpenModal(false);
@@ -56,12 +57,12 @@ function ModalInactivityDetector({ setIsOpenModal, setAnswerCount }: Props) {
           <div className="mt-3 text-center sm:mt-5">
             <Dialog.Title
               as="h3"
-              className="text-base font-semibold leading-6 text-gray-900"
+              className={`text-base font-semibold leading-6 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}
             >
               Toujours présent·e ?
             </Dialog.Title>
             <div className="mt-2">
-              <p className="text-sm text-gray-500">
+              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                 En cas d&apos;inactivité, vous serez deconnecté·e <br />
                 dans un délai de 60 secondes
               </p>
@@ -78,7 +79,11 @@ function ModalInactivityDetector({ setIsOpenModal, setAnswerCount }: Props) {
           </Link>
           <button
             type="submit"
-            className="inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold text-gray-900 bg-white rounded-md shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+            className={`inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold rounded-md shadow-sm ring-1 ring-inset sm:col-start-1 sm:mt-0 ${
+              isDark
+                ? 'text-gray-100 bg-gray-800 ring-gray-700 hover:bg-gray-700'
+                : 'text-gray-900 bg-white ring-gray-300 hover:bg-gray-50'
+            }`}
           >
             Rester connecté·e
           </button>

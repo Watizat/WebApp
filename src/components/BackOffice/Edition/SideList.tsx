@@ -8,10 +8,11 @@ import {
 import { useAppContext } from '../../../context/BackOfficeContext';
 
 export default function SideList() {
-  const { adminState, userState, setAdminState } = useAppState();
+  const { adminState, userState, setAdminState, themeMode } = useAppState();
   const { organisms, isLoading } = adminState;
   const [isActive, setIsActive] = useState<number | null>(null);
   const city = userState.city as string;
+  const isDark = themeMode === 'dark';
 
   function handleClick(organism: Organism) {
     fetchAdminOrganism(organism.id).then((organismData) => {
@@ -40,18 +41,24 @@ export default function SideList() {
     : organisms.filter((org) => org.visible);
 
   return (
-    <aside className="sticky flex flex-col w-4/12 h-[calc(100vh-4rem)] max-h-screen overflow-y-auto bg-white shadow top-16 2xl:w-3/12">
-      <ul className=" p-0 divide-y divide-gray-200 h-full;">
+    <aside
+      className={`sticky flex flex-col w-4/12 h-[calc(100vh-4rem)] max-h-screen overflow-y-auto shadow top-16 2xl:w-3/12 ${
+        isDark ? 'bg-gray-800' : 'bg-white'
+      }`}
+    >
+      <ul className={`p-0 h-full ${isDark ? 'divide-y divide-gray-700' : 'divide-y divide-gray-200'}`}>
         {isLoading && <span />}
         {filteredOrganisms.map((organism) => (
           <li key={organism.id}>
             <button
               type="button"
               onClick={() => handleClick(organism)}
-              className={` w-full text-left px-4 py-2 hover:bg-slate-200/50 min-h-[4rem] 
+              className={` w-full text-left px-4 py-2 min-h-[4rem] ${
+                isDark ? 'hover:bg-gray-700/60' : 'hover:bg-slate-200/50'
+              }
               ${
                 isActive === organism.id &&
-                'shadow-inner bg-slate-100/50 font-semibold'
+                (isDark ? 'shadow-inner bg-gray-700/70 font-semibold' : 'shadow-inner bg-slate-100/50 font-semibold')
               }`}
             >
               <div className="flex w-full flex-nowrap">
@@ -59,7 +66,13 @@ export default function SideList() {
                   <div
                     className={`text-sm lowercase first-letter:capitalize font-medium 
               ${
-                isActive === organism.id ? ' text-teal-900 ' : 'text-gray-900'
+                isActive === organism.id
+                  ? isDark
+                    ? 'text-teal-300'
+                    : 'text-teal-900'
+                  : isDark
+                    ? 'text-gray-100'
+                    : 'text-gray-900'
               }`}
                   >
                     {organism.name}
@@ -68,8 +81,12 @@ export default function SideList() {
                     <div
                       className={`text-xs font-medium ${
                         isActive === organism.id
-                          ? ' text-gray-500 '
-                          : 'text-gray-400'
+                          ? isDark
+                            ? 'text-gray-300'
+                            : ' text-gray-500 '
+                          : isDark
+                            ? 'text-gray-400'
+                            : 'text-gray-400'
                       }`}
                     >
                       {organism.address}

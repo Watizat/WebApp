@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import AlertBase from './components/ModalBase';
+import { useAppState } from '../../hooks/appState';
 
 export default function BetaPhase() {
   const [isOpenModal, setIsOpenModal] = useState(true);
+  const { themeMode } = useAppState();
+  const isDark = themeMode === 'dark';
 
   return (
     <AlertBase setIsOpenModal={setIsOpenModal} isOpenModal={isOpenModal}>
@@ -18,12 +21,12 @@ export default function BetaPhase() {
         <div className="mt-3 text-center sm:mt-5">
           <Dialog.Title
             as="h3"
-            className="text-lg font-semibold leading-6 text-gray-900"
+            className={`text-lg font-semibold leading-6 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}
           >
             Site en construction
           </Dialog.Title>
           <div className="px-10 mt-6">
-            <div className="text-sm font-semibold text-gray-400">
+            <div className={`text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-400'}`}>
               Les informations présentes dans ce site le sont uniquement à des
               fins de test
               <br />

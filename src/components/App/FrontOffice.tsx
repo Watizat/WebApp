@@ -43,7 +43,7 @@ export default function FrontApp() {
   }, [setOrganismState, langue]);
 
   return (
-    <main className="relative flex flex-col min-h-full overflow-y-hidden md:overflow-auto">
+    <main className="relative flex flex-col min-h-full overflow-y-hidden bg-white md:overflow-auto dark:bg-gray-900 dark:text-gray-100">
       {!loading && (
         <>
           <Header />

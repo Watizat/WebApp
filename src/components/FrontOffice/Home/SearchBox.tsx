@@ -6,9 +6,10 @@ import FrontColor from '../../Container/FrontColor';
 
 export default function SearchBox() {
   const navigate = useNavigate();
-  const { adminState, organismState } = useAppState();
+  const { adminState, organismState, themeMode } = useAppState();
   const { categories } = organismState;
   const { zones: cities } = adminState;
+  const isDark = themeMode === 'dark';
 
   const [selectedValues, setSelectedValues] = useState({
     city: '',
@@ -62,20 +63,40 @@ export default function SearchBox() {
     <FrontColor>
       <section className="flex flex-col items-center gap-6 px-6 mx-auto max-w-7xl lg:gap-14 ">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+          <h1
+            className={`text-4xl font-bold tracking-tight sm:text-6xl ${
+              isDark ? 'text-gray-100' : 'text-gray-900'
+            }`}
+          >
             Watizat
           </h1>
-          <p className="mt-2 text-xl leading-8 text-gray-600 md:mt-6">
+          <p
+            className={`mt-2 text-xl leading-8 md:mt-6 ${
+              isDark ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
             Guide numérique
           </p>
         </div>
-        <div className="flex flex-col items-center justify-center w-full h-full gap-2 p-6 mx-auto shadow-sm sm:gap-4 md:w-4/6 md:bg-slate-100/20 rounded-xl ring-1 ring-inset ring-watizat-500/20 lg:rounded-2xl lg:p-8">
+        <div
+          className={`flex flex-col items-center justify-center w-full h-full gap-2 p-6 mx-auto shadow-sm sm:gap-4 md:w-4/6 rounded-xl ring-1 ring-inset ring-watizat-500/20 lg:rounded-2xl lg:p-8 ${
+            isDark ? 'bg-gray-800/70' : 'md:bg-slate-100/20'
+          }`}
+        >
           <div className="flex flex-col items-center justify-center w-4/5 text-center gap-y-4">
-            <h3 className="mb-2 text-2xl font-semibold leading-6 text-gray-900 ">
+            <h3
+              className={`mb-2 text-2xl font-semibold leading-6 ${
+                isDark ? 'text-gray-100' : 'text-gray-900'
+              }`}
+            >
               Rechercher un organisme
             </h3>
 
-            <p className="leading-tight text-gray-600 md:leading-8 text-md">
+            <p
+              className={`leading-tight md:leading-8 text-md ${
+                isDark ? 'text-gray-300' : 'text-gray-600'
+              }`}
+            >
               Sélectionnez une zone géographique ainsi qu&apos;une catégorie
             </p>
           </div>
@@ -84,7 +105,9 @@ export default function SearchBox() {
               <div className="flex flex-col justify-center w-full px-4 m-auto ">
                 <label
                   htmlFor="location"
-                  className="block text-sm font-semibold leading-6 text-slate-700"
+                  className={`block text-sm font-semibold leading-6 ${
+                    isDark ? 'text-gray-200' : 'text-slate-700'
+                  }`}
                 >
                   1 . Zone géographique
                 </label>
@@ -92,7 +115,11 @@ export default function SearchBox() {
                   id="city"
                   value={selectedValues.city}
                   onChange={handleChangeCity}
-                  className="block w-full py-2 pl-3 pr-10 mt-2 text-gray-900 bg-white border-0 rounded-md ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-watizat-500 sm:text-sm sm:leading-6"
+                  className={`block w-full py-2 pl-3 pr-10 mt-2 border-0 rounded-md ring-1 ring-inset focus:ring-2 focus:ring-watizat-500 sm:text-sm sm:leading-6 ${
+                    isDark
+                      ? 'text-gray-100 bg-gray-900 ring-gray-700'
+                      : 'text-gray-900 bg-white ring-gray-300'
+                  }`}
                 >
                   <option value="" disabled>
                     Selectionner une zone...
@@ -107,7 +134,9 @@ export default function SearchBox() {
               <div className="flex flex-col justify-center w-full px-4 m-auto ">
                 <label
                   htmlFor="category"
-                  className="block text-sm font-semibold leading-6 text-slate-700"
+                  className={`block text-sm font-semibold leading-6 ${
+                    isDark ? 'text-gray-200' : 'text-slate-700'
+                  }`}
                 >
                   2 . Catégorie
                 </label>
@@ -115,7 +144,11 @@ export default function SearchBox() {
                   id="category"
                   value={selectedValues.category}
                   onChange={handleChangeCategory}
-                  className="block w-full py-2 pl-3 pr-10 mt-2 text-gray-900 bg-white border-0 rounded-md ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-watizat-500 sm:text-sm sm:leading-6"
+                  className={`block w-full py-2 pl-3 pr-10 mt-2 border-0 rounded-md ring-1 ring-inset focus:ring-2 focus:ring-watizat-500 sm:text-sm sm:leading-6 ${
+                    isDark
+                      ? 'text-gray-100 bg-gray-900 ring-gray-700'
+                      : 'text-gray-900 bg-white ring-gray-300'
+                  }`}
                 >
                   <option value="" disabled>
                     Selectionner une catégorie...
@@ -163,7 +196,9 @@ export default function SearchBox() {
         <div className="flex items-center justify-center gap-x-6">
           <Link
             to="/guides-papier"
-            className="text-sm font-semibold leading-6 text-zincslate-700"
+            className={`text-sm font-semibold leading-6 ${
+              isDark ? 'text-gray-100' : 'text-zincslate-700'
+            }`}
           >
             Le guide existe aussi en version papier{' '}
             <span aria-hidden="true">→</span>

@@ -7,8 +7,9 @@ import DataPanel from './DataPanel/DataPanel';
 import { useAppContext } from '../../../context/BackOfficeContext';
 
 export default function Edition() {
-  const { setAdminState, userState } = useAppState();
+  const { setAdminState, userState, themeMode } = useAppState();
   const city = userState.city as string;
+  const isDark = themeMode === 'dark';
 
   useEffect(() => {
     const loadOrganisms = async () => {
@@ -27,7 +28,11 @@ export default function Edition() {
   const { isOpenSlideNewOrga, setIsOpenSlideNewOrga } = appContext; // On récupère les valeurs du contexte
 
   return (
-    <main className="flex flex-1 h-full min-w-full min-h-full align-middle bg-slate-50 ">
+    <main
+      className={`flex flex-1 h-full min-w-full min-h-full align-middle ${
+        isDark ? 'bg-gray-900 text-gray-100' : 'bg-slate-50 text-gray-700'
+      }`}
+    >
       <NewOrganism
         isOpenSlide={isOpenSlideNewOrga}
         setIsOpenSlide={setIsOpenSlideNewOrga}

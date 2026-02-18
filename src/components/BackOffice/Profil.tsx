@@ -7,9 +7,10 @@ import BackColor from '../Container/BackColor';
 import SlideEditProfil from './SlideOvers/Profil/EditProfil';
 
 export default function Profil() {
-  const { adminState, setAdminState } = useAppState();
+  const { adminState, setAdminState, themeMode } = useAppState();
   const { zones, roles } = adminState;
   const [me, setMe] = useState<DirectusUser | null>(null);
+  const isDark = themeMode === 'dark';
 
   const [isOpenSlide, setIsOpenSlide] = useState(false);
 
@@ -40,9 +41,17 @@ export default function Profil() {
   return (
     <>
       <BackColor>
-        <main className="flex flex-col items-center justify-center flex-1 w-full min-h-full pb-10 select-none ">
+        <main
+          className={`flex flex-col items-center justify-center flex-1 w-full min-h-full pb-10 select-none ${
+            isDark ? 'text-gray-100' : 'text-gray-700'
+          }`}
+        >
           <div className="w-full max-w-sm mx-auto">
-            <h2 className="mt-6 text-2xl font-bold leading-9 tracking-tight text-center text-slate-600">
+            <h2
+              className={`mt-6 text-2xl font-bold leading-9 tracking-tight text-center ${
+                isDark ? 'text-gray-100' : 'text-slate-600'
+              }`}
+            >
               Informations de profil
             </h2>
           </div>
@@ -53,7 +62,7 @@ export default function Profil() {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-semibold leading-6 text-gray-600"
+                    className={`block text-sm font-semibold leading-6 ${isDark ? 'text-gray-200' : 'text-gray-600'}`}
                   >
                     Prénom
                   </label>
@@ -61,7 +70,11 @@ export default function Profil() {
                     <input
                       disabled
                       value={me.first_name}
-                      className="block w-full pl-2 rounded-md border-0 py-1.5 text-gray-800 shadow-sm ring-1 ring-inset ring-gray-200  sm:text-sm sm:leading-6 bg-slate-200/10"
+                      className={`block w-full pl-2 rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset sm:text-sm sm:leading-6 ${
+                        isDark
+                          ? 'text-gray-100 ring-gray-700 bg-gray-800/70'
+                          : 'text-gray-800 ring-gray-200 bg-slate-200/10'
+                      }`}
                     />
                   </div>
                 </div>
@@ -69,7 +82,7 @@ export default function Profil() {
                   <div className="flex items-center justify-between">
                     <label
                       htmlFor="password"
-                      className="block text-sm font-semibold leading-6 text-gray-600"
+                      className={`block text-sm font-semibold leading-6 ${isDark ? 'text-gray-200' : 'text-gray-600'}`}
                     >
                       Nom de famille / surnom / pseudo
                     </label>
@@ -78,7 +91,11 @@ export default function Profil() {
                     <input
                       disabled
                       value={me.last_name}
-                      className="block w-full pl-2 rounded-md border-0 py-1.5 text-gray-800 shadow-sm ring-1 ring-inset ring-gray-200  sm:text-sm sm:leading-6 bg-slate-200/10"
+                      className={`block w-full pl-2 rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset sm:text-sm sm:leading-6 ${
+                        isDark
+                          ? 'text-gray-100 ring-gray-700 bg-gray-800/70'
+                          : 'text-gray-800 ring-gray-200 bg-slate-200/10'
+                      }`}
                     />
                   </div>
                 </div>
@@ -87,7 +104,7 @@ export default function Profil() {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-semibold leading-6 text-gray-600"
+                    className={`block text-sm font-semibold leading-6 ${isDark ? 'text-gray-200' : 'text-gray-600'}`}
                   >
                     Adresse email
                   </label>
@@ -95,21 +112,29 @@ export default function Profil() {
                     <input
                       disabled
                       value={me.email}
-                      className="block w-full pl-2 rounded-md border-0 py-1.5 text-gray-800 shadow-sm ring-1 ring-inset ring-gray-200  sm:text-sm sm:leading-6 bg-slate-200/10"
+                      className={`block w-full pl-2 rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset sm:text-sm sm:leading-6 ${
+                        isDark
+                          ? 'text-gray-100 ring-gray-700 bg-gray-800/70'
+                          : 'text-gray-800 ring-gray-200 bg-slate-200/10'
+                      }`}
                     />
                   </div>
                 </div>
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="location"
-                    className="block text-sm font-semibold leading-6 text-gray-600"
+                    className={`block text-sm font-semibold leading-6 ${isDark ? 'text-gray-200' : 'text-gray-600'}`}
                   >
                     Antenne locale
                   </label>
                   <select
                     disabled
                     defaultValue={me.zone}
-                    className="block w-full py-2 pl-3 pr-10 mt-2 text-gray-800 border-0 rounded-md ring-1 ring-inset ring-gray-200 focus:ring-2 sm:text-sm sm:leading-6 bg-slate-200/10"
+                    className={`block w-full py-2 pl-3 pr-10 mt-2 border-0 rounded-md ring-1 ring-inset focus:ring-2 sm:text-sm sm:leading-6 ${
+                      isDark
+                        ? 'text-gray-100 ring-gray-700 bg-gray-800/70'
+                        : 'text-gray-800 ring-gray-200 bg-slate-200/10'
+                    }`}
                   >
                     {zones.map((zone) => (
                       <option key={zone.id} value={zone.id}>
@@ -123,14 +148,18 @@ export default function Profil() {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="location"
-                    className="block text-sm font-semibold leading-6 text-gray-600"
+                    className={`block text-sm font-semibold leading-6 ${isDark ? 'text-gray-200' : 'text-gray-600'}`}
                   >
                     Rôle utilisateur·ice
                   </label>
                   <select
                     disabled
                     defaultValue={me.role}
-                    className="block w-full py-2 pl-3 pr-10 mt-2 text-gray-800 border-0 rounded-md ring-1 ring-inset ring-gray-200 focus:ring-2 sm:text-sm sm:leading-6 bg-slate-200/10"
+                    className={`block w-full py-2 pl-3 pr-10 mt-2 border-0 rounded-md ring-1 ring-inset focus:ring-2 sm:text-sm sm:leading-6 ${
+                      isDark
+                        ? 'text-gray-100 ring-gray-700 bg-gray-800/70'
+                        : 'text-gray-800 ring-gray-200 bg-slate-200/10'
+                    }`}
                   >
                     {roles.map((role) => (
                       <option key={role.id} value={role.id}>
@@ -143,7 +172,11 @@ export default function Profil() {
                   <button
                     type="button"
                     onClick={() => setIsOpenSlide(true)}
-                    className="rounded-md bg-transparent px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className={`rounded-md px-2.5 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-inset ${
+                      isDark
+                        ? 'bg-gray-800 text-gray-100 ring-gray-600 hover:bg-gray-700'
+                        : 'bg-transparent text-gray-900 ring-gray-300 hover:bg-gray-50'
+                    }`}
                   >
                     Modifier les informations
                   </button>

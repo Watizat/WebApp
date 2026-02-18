@@ -116,7 +116,7 @@ export default function App() {
       <div className='md:hidden'>
         <NoMobile />
       </div>
-      <div className='hidden md:block'>
+      <div className='hidden bg-white md:block dark:bg-gray-900 dark:text-gray-100'>
         {!isLoading && (
           <>
             {userState.roleName === 'NewUser' ? (
@@ -129,7 +129,7 @@ export default function App() {
                     pathname === '/admin/dashboard' || pathname === '/admin/profil'
                       ? 'h-full min-h-full'
                       : 'h-max min-h-max'
-                  }`}
+                  } bg-white dark:bg-gray-900`}
                 >
                   <Header setSidebarOpen={setSidebarOpen} />
                   <Outlet />
