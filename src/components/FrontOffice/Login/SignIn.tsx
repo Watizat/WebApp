@@ -28,6 +28,7 @@ export default function SignIn() {
     setUserState(prev => ({ ...prev, isLoading: true }));
     try {
       const { token, session } = await loginRequest({ email, password });
+
       localStorage.setItem(
         'user',
         JSON.stringify({
