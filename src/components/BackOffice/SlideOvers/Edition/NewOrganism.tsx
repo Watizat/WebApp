@@ -36,6 +36,7 @@ export default function NewOrganism({ isOpenSlide, setIsOpenSlide }: Props) {
   const [me, setMe] = useState<DirectusUser | null>(null);
   const { isSaving } = crudState;
   const { isAdmin, city } = userState;
+  const cityFilter = city || localStorage.getItem('city') || '';
   const { zones } = adminState;
   const { days } = organismState;
   const {
@@ -65,7 +66,7 @@ export default function NewOrganism({ isOpenSlide, setIsOpenSlide }: Props) {
       setAdminState((prev) => ({ ...prev, organism: organismData }));
     }
     setIsOpenSlide(false);
-    const organisms = await fetchAdminOrganisms({ city });
+    const organisms = await fetchAdminOrganisms({ city: cityFilter });
     setAdminState((prev) => ({ ...prev, organisms, isLoading: false }));
     setCrudState({ isSaving: false });
   };

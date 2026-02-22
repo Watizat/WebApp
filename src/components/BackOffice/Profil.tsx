@@ -33,6 +33,8 @@ export default function Profil() {
     return <div />;
   }
 
+  const roleValue = typeof me.role === 'string' ? me.role : me.role?.id || '';
+
   const updateUser = (updatedUser: DirectusUser) => {
     setMe(updatedUser);
   };
@@ -129,7 +131,7 @@ export default function Profil() {
                   </label>
                   <select
                     disabled
-                    defaultValue={me.role}
+                    defaultValue={roleValue}
                     className="block w-full py-2 pl-3 pr-10 mt-2 text-gray-800 border-0 rounded-md ring-1 ring-inset ring-gray-200 focus:ring-2 sm:text-sm sm:leading-6 bg-slate-200/10"
                   >
                     {roles.map((role) => (

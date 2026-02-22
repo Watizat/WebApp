@@ -52,7 +52,7 @@ export default function SlideEditUser({
       : zones.find((zone) => zone.name === city);
     const localUser = getUserDataFromLocalStorage();
     const me = await fetchMe();
-    const { zone } = me;
+    const zone = me?.zone;
 
     if (!localUser?.token) {
       return;
@@ -70,8 +70,10 @@ export default function SlideEditUser({
             setAdminState((prev) => ({ ...prev, users: usersList }));
           }
         } else {
-          const usersList = await fetchUsers(zone.toString());
-          setAdminState((prev) => ({ ...prev, users: usersList }));
+          if (zone !== undefined && zone !== null) {
+            const usersList = await fetchUsers(zone.toString());
+            setAdminState((prev) => ({ ...prev, users: usersList }));
+          }
         }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -174,7 +176,8 @@ export default function SlideEditUser({
                 <Select
                   data={{
                     label: 'Rôle utilisateur·ice',
-                    defaultValue: user.role,
+                    defaultValue:
+                      typeof user.role === 'string' ? user.role : user.role?.id,
                     register: 'role',
                     required: false,
                   }}
