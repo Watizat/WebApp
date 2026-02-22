@@ -4,6 +4,7 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import ModalBase from './components/ModalBase';
 import styles from '../../styles/markdown.module.css';
+import { useAppState } from '../../hooks/appState';
 
 interface Release {
   tag_name: string;
@@ -27,6 +28,8 @@ const replaceIssueLinks = (body: string): string => {
 
 export default function Versions({ isOpenModal, setIsOpenModal }: Props) {
   const [versions, setVersions] = useState<Release[]>([]);
+  const { themeMode } = useAppState();
+  const isDark = themeMode === 'dark';
 
   useEffect(() => {
     const fetchGitHubReleases = async () => {
@@ -63,12 +66,14 @@ export default function Versions({ isOpenModal, setIsOpenModal }: Props) {
       <div className="py-2 sm:flex sm:items-start max-h-[75vh]  m-auto flex flex-col flex-1 mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
         <Dialog.Title
           as="h2"
-          className="flex justify-between flex-1 w-full mb-8 text-3xl font-medium leading-6 text-slate-700/80"
+          className={`flex justify-between flex-1 w-full mb-8 text-3xl font-medium leading-6 ${
+            isDark ? 'text-gray-100' : 'text-slate-700/80'
+          }`}
         >
           Quelles nouvelles ?
           <button
             type="button"
-            className="relative text-gray-500 hover:text-gray-500"
+            className={`relative ${isDark ? 'text-gray-300 hover:text-gray-100' : 'text-gray-500 hover:text-gray-500'}`}
             onClick={() => setIsOpenModal(false)}
           >
             <span className="absolute -inset-2.5" />
@@ -79,7 +84,7 @@ export default function Versions({ isOpenModal, setIsOpenModal }: Props) {
         <ul className="flex flex-col gap-y-6 overflow-auto flex-1 w-full">
           {versions.map((version) => (
             <li key={version.version} className="flex flex-col ">
-              <div className="text-xl font-semibold text-slate-600">
+              <div className={`text-xl font-semibold ${isDark ? 'text-gray-100' : 'text-slate-600'}`}>
                 {version.name} - {version.publishedAt}
               </div>
               <ReactMarkdown className={styles.markdown}>
@@ -89,10 +94,14 @@ export default function Versions({ isOpenModal, setIsOpenModal }: Props) {
           ))}
         </ul>
       </div>
-      <div className="flex justify-end mt-4 bg-white">
+      <div className={`flex justify-end mt-4 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
         <button
           type="button"
-          className="inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold text-gray-900 bg-white rounded-md shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+          className={`inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold rounded-md shadow-sm ring-1 ring-inset sm:mt-0 sm:w-auto ${
+            isDark
+              ? 'text-gray-100 bg-gray-800 ring-gray-700 hover:bg-gray-700'
+              : 'text-gray-900 bg-white ring-gray-300 hover:bg-gray-50'
+          }`}
           onClick={() => setIsOpenModal(false)}
         >
           Fermer

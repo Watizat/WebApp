@@ -8,6 +8,7 @@ import { clearZonesCache, fetchZones } from '../../api/admin';
 import { removeUserDataFromLocalStorage } from '../../utils/user';
 import { DirectusUser } from '../../@types/user';
 import { useAppContext } from '../../context/BackOfficeContext';
+import ThemeToggle from '../shared/ThemeToggle';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -18,11 +19,12 @@ interface Props {
 
 export default function Header({ setSidebarOpen }: Props) {
   const [select, setSelect] = useState(localStorage.getItem('city') || '');
-  const { adminState, userState, setAdminState, setUserState, resetAppState } = useAppState();
+  const { adminState, userState, setAdminState, setUserState, resetAppState, themeMode } = useAppState();
   const { isAdmin } = userState;
   const { zones } = adminState;
   const [me, setMe] = useState<DirectusUser | null>(null);
   const { pathname } = useLocation();
+  const isDark = themeMode === 'dark';
 
   const handleChangeCity = (event: ChangeEvent<HTMLSelectElement>) => {
     localStorage.setItem('city', event.target.value);
@@ -79,8 +81,16 @@ export default function Header({ setSidebarOpen }: Props) {
   }
 
   return (
-    <div className='sticky top-0 z-40 flex items-center h-16 px-4 bg-white border-b border-gray-200 shadow-sm shrink-0 gap-x-4 sm:gap-x-6 sm:px-6 lg:px-8'>
-      <button type='button' className='-m-2.5 p-2.5 text-gray-700 lg:hidden' onClick={() => setSidebarOpen(true)}>
+    <div
+      className={`sticky top-0 z-40 flex items-center h-16 px-4 border-b shadow-sm shrink-0 gap-x-4 sm:gap-x-6 sm:px-6 lg:px-8 ${
+        isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+      }`}
+    >
+      <button
+        type='button'
+        className={`-m-2.5 p-2.5 lg:hidden ${isDark ? 'text-gray-100' : 'text-gray-700'}`}
+        onClick={() => setSidebarOpen(true)}
+      >
         <span className='sr-only'>Ouvrir la sidebar</span>
         <Bars3Icon className='w-6 h-6' aria-hidden='true' />
       </button>
@@ -128,7 +138,11 @@ export default function Header({ setSidebarOpen }: Props) {
               <div className='relative'>
                 <Listbox.Button
                   aria-disabled={!isAdmin}
-                  className='relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 ring-1 ring-inset ring-gray-200/80 sm:text-sm sm:leading-6 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500'
+                  className={`relative w-full cursor-default rounded-md py-1.5 pl-3 pr-10 text-left ring-1 ring-inset sm:text-sm sm:leading-6 disabled:cursor-not-allowed ${
+                    isDark
+                      ? 'bg-gray-800 text-gray-100 ring-gray-700 disabled:bg-gray-800 disabled:text-gray-500'
+                      : 'bg-white text-gray-900 ring-gray-200/80 disabled:bg-gray-50 disabled:text-gray-500'
+                  }`}
                 >
                   <span className='block truncate'>{select || 'Selectionner une ville'}</span>
                   <span className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2'>
@@ -141,7 +155,11 @@ export default function Header({ setSidebarOpen }: Props) {
                   leaveFrom='opacity-100'
                   leaveTo='opacity-0'
                 >
-                  <Listbox.Options className='absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none'>
+                  <Listbox.Options
+                    className={`absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-sm shadow-lg ring-1 focus:outline-none ${
+                      isDark ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-black/5'
+                    }`}
+                  >
                     <Listbox.Option
                       value=''
                       disabled
@@ -155,7 +173,13 @@ export default function Header({ setSidebarOpen }: Props) {
                         value={zone.name}
                         className={({ active }) =>
                           classNames(
-                            active ? 'bg-sky-50 text-sky-900' : 'text-gray-900',
+                            active
+                              ? isDark
+                                ? 'bg-gray-700 text-gray-100'
+                                : 'bg-sky-50 text-sky-900'
+                              : isDark
+                                ? 'text-gray-100'
+                                : 'text-gray-900',
                             'relative cursor-default select-none py-2 pl-3 pr-9',
                           )
                         }
@@ -173,14 +197,21 @@ export default function Header({ setSidebarOpen }: Props) {
             </Listbox>
           </div>
           {/* Separator */}
-          <div className='hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10' aria-hidden='true' />
+          <ThemeToggle />
+          <div
+            className={`hidden lg:block lg:h-6 lg:w-px ${isDark ? 'lg:bg-gray-700' : 'lg:bg-gray-900/10'}`}
+            aria-hidden='true'
+          />
           {/* Profile dropdown */}
           <Menu as='div' className='relative'>
             <Menu.Button className='-m-1.5 flex items-center p-1.5'>
               <span className='sr-only'>Open user menu</span>
-              <UserCircleIcon className='w-8 h-8 text-gray-400' aria-hidden='true' />
+              <UserCircleIcon className={`w-8 h-8 ${isDark ? 'text-gray-200' : 'text-gray-400'}`} aria-hidden='true' />
               <span className='hidden lg:flex lg:items-center'>
-                <span className='ml-4 text-sm font-semibold leading-6 text-gray-900' aria-hidden='true'>
+                <span
+                  className={`ml-4 text-sm font-semibold leading-6 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}
+                  aria-hidden='true'
+                >
                   {me.first_name || ''} {me.last_name || ''}
                 </span>
                 <ChevronDownIcon className='w-5 h-5 ml-2 text-gray-400' aria-hidden='true' />
@@ -195,7 +226,11 @@ export default function Header({ setSidebarOpen }: Props) {
               leaveFrom='transform opacity-100 scale-100'
               leaveTo='transform opacity-0 scale-95'
             >
-              <Menu.Items className='absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none'>
+              <Menu.Items
+                className={`absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md py-2 shadow-lg ring-1 focus:outline-none ${
+                  isDark ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-900/5'
+                }`}
+              >
                 {actions.map(action => (
                   <Menu.Item key={action.name}>
                     {({ active }) => (
@@ -203,8 +238,8 @@ export default function Header({ setSidebarOpen }: Props) {
                         to={action.href}
                         onClick={action.onclick}
                         className={classNames(
-                          active ? 'bg-gray-50' : '',
-                          'block px-3 py-1 text-sm leading-6 text-gray-900',
+                          active ? (isDark ? 'bg-gray-700' : 'bg-gray-50') : '',
+                          `block px-3 py-1 text-sm leading-6 ${isDark ? 'text-gray-100' : 'text-gray-900'}`,
                         )}
                       >
                         {action.name}

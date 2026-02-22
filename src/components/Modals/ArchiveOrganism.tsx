@@ -36,8 +36,8 @@ export default function ArchiveOrganism({
     formState: { errors },
     reset,
   } = useForm<Inputs>();
-  const { adminState, userState, setAdminState, setCrudState } =
-    useAppState();
+  const { adminState, userState, setAdminState, setCrudState, themeMode } = useAppState();
+  const isDark = themeMode === 'dark';
 
   // Réinitialiser le formulaire à l'ouverture de la Modal
   useEffect(() => {
@@ -114,12 +114,12 @@ export default function ArchiveOrganism({
             <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
               <Dialog.Title
                 as="h3"
-                className="text-base font-semibold leading-6 text-gray-900"
+                className={`text-base font-semibold leading-6 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}
               >
                 {visibilityAnswer[0]}
               </Dialog.Title>
               <div className="mt-2">
-                <p className="text-sm text-gray-500">{visibilityAnswer[1]}</p>
+                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>{visibilityAnswer[1]}</p>
               </div>
             </div>
             <div className="pl-4 mt-4">
@@ -141,13 +141,17 @@ export default function ArchiveOrganism({
           <button
             type="button"
             onClick={handleSubmit(updateVisibilityMessage)}
-            className="px-2 py-1 mr-2 text-sm font-semibold text-gray-600 rounded"
+            className={`px-2 py-1 mr-2 text-sm font-semibold rounded ${isDark ? 'text-gray-200' : 'text-gray-600'}`}
           >
             Modifier le message
           </button>
           <button
             type="button"
-            className="inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold text-gray-900 bg-white rounded-md shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+            className={`inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold rounded-md shadow-sm ring-1 ring-inset sm:mt-0 sm:w-auto ${
+              isDark
+                ? 'text-gray-100 bg-gray-800 ring-gray-700 hover:bg-gray-700'
+                : 'text-gray-900 bg-white ring-gray-300 hover:bg-gray-50'
+            }`}
             onClick={() => setIsOpenModal(false)}
             ref={cancelButtonRef}
           >

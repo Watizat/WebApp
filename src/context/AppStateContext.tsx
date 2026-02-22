@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Categorie, Days, Organism, Role, Zone } from '../@types/organism';
 import { DirectusUser, UserState } from '../@types/user';
 import { getUserDataFromLocalStorage } from '../utils/user';
@@ -48,6 +48,9 @@ interface AppStateContextValue {
   setOrganismState: React.Dispatch<React.SetStateAction<OrganismsState>>;
   userState: UserState;
   setUserState: React.Dispatch<React.SetStateAction<UserState>>;
+  themeMode: 'light' | 'dark';
+  setThemeMode: React.Dispatch<React.SetStateAction<'light' | 'dark'>>;
+  toggleThemeMode: () => void;
   resetAppState: () => void;
 }
 
@@ -115,6 +118,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [hamburgerState, setHamburgerState] = useState<HamburgerState>(initialHamburgerState);
   const [organismState, setOrganismState] = useState<OrganismsState>(initialOrganismsState);
   const [userState, setUserState] = useState<UserState>(createInitialUserState);
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
+    const storedTheme = localStorage.getItem('themeMode');
+    if (storedTheme === 'dark' || storedTheme === 'light') {
+      return storedTheme;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('themeMode', themeMode);
+    document.documentElement.classList.toggle('dark', themeMode === 'dark');
+  }, [themeMode]);
+
+  const toggleThemeMode = useCallback(() => {
+    setThemeMode(prev => (prev === 'light' ? 'dark' : 'light'));
+  }, []);
+
   const resetAppState = useCallback(() => {
     setAdminState(initialAdminState);
     setCrudState(initialCrudState);
@@ -135,6 +155,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setOrganismState,
       userState,
       setUserState,
+      themeMode,
+      setThemeMode,
+      toggleThemeMode,
       resetAppState,
     };
   }, [
@@ -148,6 +171,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setOrganismState,
     userState,
     setUserState,
+    themeMode,
+    setThemeMode,
+    toggleThemeMode,
     resetAppState,
   ]);
 
