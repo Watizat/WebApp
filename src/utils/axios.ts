@@ -6,6 +6,10 @@ import {
   removeUserDataFromLocalStorage,
 } from './user';
 
+const apiBaseUrl = import.meta.env.DEV
+  ? '/api'
+  : (import.meta.env.VITE_API_URL as string) || 'https://api.watizat.app';
+
 // Objet pour gérer le rafraichissement du token
 const authRefresh: {
   inProgress: boolean;
@@ -31,7 +35,7 @@ const authRefresh: {
 
     // Appel à l'API pour rafraîchir le token
     const refreshPromise = await axios
-      .post<{ data: AuthResponse }>('https://api.watizat.app/auth/refresh', {
+      .post<{ data: AuthResponse }>(`${apiBaseUrl}/auth/refresh`, {
         refresh_token: user.token.refresh_token,
         mode: 'json',
       })
@@ -80,7 +84,7 @@ const authRefresh: {
 // Créer une instance d'axios avec la base URL
 /* eslint-disable import/prefer-default-export */
 export const axiosInstance = axios.create({
-  baseURL: 'https://api.watizat.app',
+  baseURL: apiBaseUrl,
 });
 
 // Interceptor pour les requêtes
@@ -161,3 +165,4 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
